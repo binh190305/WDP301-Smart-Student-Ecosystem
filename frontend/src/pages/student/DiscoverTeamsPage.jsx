@@ -11,12 +11,12 @@ import {
   Modal,
   Textarea,
 } from '../../components/common';
-import { MatchBreakdown } from '../../components/common/MatchScore';
 import PageHeader from '../../components/layout/PageHeader';
 import Icon from '../../components/common/Icon';
 import { cn } from '../../utils/cn';
 import TeamCard from './TeamCard';
 import CreateTeamModal from './CreateTeamModal';
+import AiTeamChat from './AiTeamChat';
 
 const TABS = [
   { key: 'recommended', label: 'Gợi ý từ AI', icon: 'sparkles' },
@@ -26,8 +26,8 @@ const TABS = [
 const DiscoverTeamsPage = () => {
   const toast = useToast();
   const [tab, setTab] = useState('recommended');
-  const [loading, setLoading] = useState(true);
-  const [recommendations, setRecommendations] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [requestedIds, setRequestedIds] = useState(() => new Set());
   const [teams, setTeams] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [filters, setFilters] = useState({ search: '', major: '', skill: '', status: 'recruiting', page: 1 });
@@ -35,18 +35,6 @@ const DiscoverTeamsPage = () => {
   const [joinTarget, setJoinTarget] = useState(null);
   const [joinMessage, setJoinMessage] = useState('');
   const [joining, setJoining] = useState(false);
-
-  const loadRecommended = async () => {
-    setLoading(true);
-    try {
-      const res = await teamApi.recommended({ limit: 12 });
-      setRecommendations(res.data.recommendations);
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const loadSearch = async () => {
     setLoading(true);
@@ -67,10 +55,6 @@ const DiscoverTeamsPage = () => {
   };
 
   useEffect(() => {
-    if (tab === 'recommended') loadRecommended();
-  }, [tab]);
-
-  useEffect(() => {
     if (tab === 'search') loadSearch();
   }, [tab, filters.page]);
 
@@ -85,6 +69,7 @@ const DiscoverTeamsPage = () => {
     try {
       await teamApi.requestJoin(joinTarget._id, { message: joinMessage });
       toast.success('Đã gửi yêu cầu tham gia nhóm');
+      setRequestedIds((prev) => new Set(prev).add(joinTarget._id));
       setJoinTarget(null);
       setJoinMessage('');
     } catch (err) {
@@ -143,28 +128,10 @@ const DiscoverTeamsPage = () => {
         </form>
       )}
 
-      {loading ? (
+      {tab === 'recommended' ? (
+        <AiTeamChat requestedIds={requestedIds} onJoin={setJoinTarget} onCreate={() => setCreateOpen(true)} />
+      ) : loading ? (
         <LoadingState />
-      ) : tab === 'recommended' ? (
-        recommendations.length === 0 ? (
-          <EmptyState
-            title="Chưa có nhóm phù hợp"
-            description="Cập nhật kỹ năng, ngành học và mối quan tâm trong hồ sơ để nhận gợi ý tốt hơn, hoặc tự tạo nhóm mới."
-            action={<Button onClick={() => setCreateOpen(true)}>Tạo nhóm mới</Button>}
-          />
-        ) : (
-          <div className="space-y-4">
-            {recommendations.map(({ team, score, breakdown }) => (
-              <div key={team._id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-card">
-                <TeamCardInline team={team} score={score} onJoin={setJoinTarget} />
-                <div className="mt-3 border-t border-slate-100 pt-3">
-                  <p className="mb-2 text-xs font-semibold text-slate-500">Mức độ phù hợp theo tiêu chí</p>
-                  <MatchBreakdown breakdown={breakdown} />
-                </div>
-              </div>
-            ))}
-          </div>
-        )
       ) : teams.length === 0 ? (
         <EmptyState title="Không tìm thấy nhóm nào" description="Thử thay đổi từ khóa hoặc bộ lọc tìm kiếm." />
       ) : (
@@ -178,7 +145,7 @@ const DiscoverTeamsPage = () => {
         </>
       )}
 
-      <CreateTeamModal open={createOpen} onClose={() => setCreateOpen(false)} onCreated={loadRecommended} />
+      <CreateTeamModal open={createOpen} onClose={() => setCreateOpen(false)} onCreated={() => tab === 'search' && loadSearch()} />
 
       <Modal
         open={Boolean(joinTarget)}
@@ -201,29 +168,5 @@ const DiscoverTeamsPage = () => {
     </div>
   );
 };
-
-const TeamCardInline = ({ team, score, onJoin }) => (
-  <div className="flex items-start justify-between gap-4">
-    <div className="min-w-0">
-      <a href={`/app/teams/${team._id}`} className="font-semibold text-slate-900 hover:text-brand-600">
-        {team.name}
-      </a>
-      <p className="text-sm text-slate-500">{team.topic || team.major}</p>
-      <div className="mt-2 flex flex-wrap gap-1">
-        {(team.skillsNeeded || []).slice(0, 6).map((skill) => (
-          <span key={skill} className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
-            {skill}
-          </span>
-        ))}
-      </div>
-    </div>
-    <div className="flex flex-col items-end gap-2">
-      <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-600">{score}% phù hợp</span>
-      {team.status === 'recruiting' && (
-        <Button size="sm" onClick={() => onJoin(team)}>Xin tham gia</Button>
-      )}
-    </div>
-  </div>
-);
 
 export default DiscoverTeamsPage;

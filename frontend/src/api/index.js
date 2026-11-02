@@ -46,6 +46,13 @@ export const teamApi = {
   downloadResource: (id, resourceId) => client.get(`/teams/${id}/resources/${resourceId}/download`, { responseType: 'blob' }),
 };
 
+export const recommendationApi = {
+  groups: (studentId = 'me', params) => client.get(`/students/${studentId}/group-recommendations`, { params }),
+  chat: (payload, studentId = 'me') => client.post(`/students/${studentId}/group-recommendations/chat`, payload),
+  members: (teamId, params) => client.get(`/groups/${teamId}/member-recommendations`, { params }),
+  click: (payload) => client.post('/recommendations/events', payload),
+};
+
 export const invitationApi = {
   mine: (params) => client.get('/team-invitations/mine', { params }),
   accept: (id) => client.post(`/team-invitations/${id}/accept`),
