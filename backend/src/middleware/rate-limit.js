@@ -37,4 +37,10 @@ const uploadRateLimit = createRateLimit({
   message: 'Bạn đã tải lên quá nhiều tệp, vui lòng thử lại sau',
 });
 
-module.exports = { authRateLimit, uploadRateLimit };
+const aiChatRateLimit = createRateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 30,
+  message: 'Bạn đã gửi quá nhiều tin nhắn cho trợ lý AI, vui lòng thử lại sau ít phút',
+});
+
+module.exports = { authRateLimit, uploadRateLimit, aiChatRateLimit };

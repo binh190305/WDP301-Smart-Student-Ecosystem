@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { ROLES: PROJECT_ROLES } = require('../recommendation/skill-catalog');
 
 const memberSchema = new mongoose.Schema(
   {
@@ -31,6 +32,20 @@ const teamSchema = new mongoose.Schema(
       },
     },
     status: { type: String, enum: ['recruiting', 'full', 'closed'], default: 'recruiting' },
+    // Dữ liệu cho module gợi ý nhóm (tùy chọn)
+    course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', default: null },
+    skillRequirements: {
+      type: [
+        {
+          _id: false,
+          name: { type: String, required: true, trim: true, maxlength: 40 },
+          minLevel: { type: Number, required: true, min: 1, max: 5 },
+        },
+      ],
+      default: [],
+    },
+    rolesNeeded: { type: [{ type: String, enum: Object.keys(PROJECT_ROLES) }], default: [] },
+    goal: { type: String, enum: ['excellent', 'good', 'pass', null], default: null },
   },
   { timestamps: true }
 );
@@ -39,6 +54,7 @@ teamSchema.index({ name: 'text', description: 'text', topic: 'text' });
 teamSchema.index({ major: 1, status: 1 });
 teamSchema.index({ skillsNeeded: 1 });
 teamSchema.index({ leader: 1 });
+teamSchema.index({ course: 1, status: 1 });
 teamSchema.index({ 'members.user': 1 });
 teamSchema.index({ createdAt: -1 });
 

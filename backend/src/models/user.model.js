@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const { ROLES: PROJECT_ROLES } = require('../recommendation/skill-catalog');
+
+const GOALS = ['excellent', 'good', 'pass'];
 
 const ROLES = ['student', 'lecturer', 'admin', 'club_leader'];
 
@@ -16,6 +19,19 @@ const userSchema = new mongoose.Schema(
     skills: { type: [String], default: [] },
     interests: { type: [String], default: [] },
     description: { type: String, default: '', maxlength: 1000 },
+    // Dữ liệu cho module gợi ý nhóm (tùy chọn)
+    skillLevels: {
+      type: [
+        {
+          _id: false,
+          name: { type: String, required: true, trim: true, maxlength: 40 },
+          level: { type: Number, required: true, min: 1, max: 5 },
+        },
+      ],
+      default: [],
+    },
+    preferredRoles: { type: [{ type: String, enum: Object.keys(PROJECT_ROLES) }], default: [] },
+    goal: { type: String, enum: [...GOALS, null], default: null },
     pushTokens: { type: [String], default: [], select: false },
     lastLoginAt: { type: Date, default: null },
     tokenVersion: { type: Number, default: 0 },
