@@ -26,9 +26,23 @@ const SUGGESTIONS = [
 ];
 
 const OPEN_KEY = 'aiTeamChatOpen';
+const HISTORY_KEY = 'aiTeamChatHistory';
 
 let nextId = 0;
 const newId = () => (nextId += 1);
+
+const historyKey = (user) => `${HISTORY_KEY}:${user?._id || user?.id || 'guest'}`;
+
+const loadHistory = (user) => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(historyKey(user)));
+    if (!Array.isArray(saved) || !saved.length) return null;
+    nextId = Math.max(nextId, ...saved.map((m) => m.id || 0));
+    return saved;
+  } catch {
+    return null;
+  }
+};
 
 const CriteriaChips = ({ criteria }) => {
   if (!criteria) return null;
@@ -171,6 +185,24 @@ const AiTeamChat = ({ requestedIds, onJoin, onCreate }) => {
   const [sending, setSending] = useState(false);
   const [open, setOpen] = useState(() => localStorage.getItem(OPEN_KEY) !== '0');
   const bottomRef = useRef(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  // A reply that arrives after the user left the page is appended to the saved history instead
+  const settleReply = (pendingId, reply) => {
+    if (mountedRef.current) {
+      setMessages((prev) => prev.map((m) => (m.id === pendingId ? reply : m)));
+      return;
+    }
+    const saved = loadHistory(user) || [];
+    localStorage.setItem(historyKey(user), JSON.stringify([...saved, reply]));
+  };
 
   const greet = async () => {
     const id = newId();
@@ -199,8 +231,15 @@ const AiTeamChat = ({ requestedIds, onJoin, onCreate }) => {
   };
 
   useEffect(() => {
-    greet();
+    const saved = loadHistory(user);
+    if (saved) setMessages(saved);
+    else greet();
   }, []);
+
+  useEffect(() => {
+    const finished = messages.filter((m) => !m.loading);
+    if (finished.length) localStorage.setItem(historyKey(user), JSON.stringify(finished));
+  }, [messages]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -217,30 +256,20 @@ const AiTeamChat = ({ requestedIds, onJoin, onCreate }) => {
     try {
       const res = await recommendationApi.chat({ message, history, limit: 5 });
       const data = res.data;
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === pendingId
-            ? {
-                id: pendingId,
-                role: 'assistant',
-                source: 'chat',
-                text: data.reply,
-                criteria: data.criteria,
-                recommendations: data.recommendations,
-                suggestCreate: data.suggest_create_team,
-                needsOnboarding: data.needs_onboarding,
-              }
-            : m
-        )
-      );
+      settleReply(pendingId, {
+        id: pendingId,
+        role: 'assistant',
+        source: 'chat',
+        text: data.reply,
+        criteria: data.criteria,
+        recommendations: data.recommendations,
+        suggestCreate: data.suggest_create_team,
+        needsOnboarding: data.needs_onboarding,
+      });
     } catch (err) {
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === pendingId ? { id: pendingId, role: 'assistant', text: err.message || 'Có lỗi xảy ra, bạn thử lại nhé.' } : m
-        )
-      );
+      settleReply(pendingId, { id: pendingId, role: 'assistant', text: err.message || 'Có lỗi xảy ra, bạn thử lại nhé.' });
     } finally {
-      setSending(false);
+      if (mountedRef.current) setSending(false);
     }
   };
 

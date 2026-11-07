@@ -128,9 +128,12 @@ const DiscoverTeamsPage = () => {
         </form>
       )}
 
-      {tab === 'recommended' ? (
+      {/* Keep the chat mounted so its draft and in-flight replies survive tab switches */}
+      <div className={cn(tab !== 'recommended' && 'hidden')}>
         <AiTeamChat requestedIds={requestedIds} onJoin={setJoinTarget} onCreate={() => setCreateOpen(true)} />
-      ) : loading ? (
+      </div>
+
+      {tab === 'recommended' ? null : loading ? (
         <LoadingState />
       ) : teams.length === 0 ? (
         <EmptyState title="Không tìm thấy nhóm nào" description="Thử thay đổi từ khóa hoặc bộ lọc tìm kiếm." />
