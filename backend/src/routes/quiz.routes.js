@@ -5,6 +5,7 @@ const {
   createQuizSchema,
   updateQuizSchema,
   submitAttemptSchema,
+  generateAiQuizSchema,
   listQuizzesQuerySchema,
 } = require('../validators/quiz.validator');
 const quizController = require('../controllers/quiz.controller');
@@ -18,6 +19,8 @@ router.get('/', validate(listQuizzesQuerySchema, 'query'), quizController.listQu
 router.get('/import-template', restrictTo('lecturer', 'admin'), quizController.downloadTemplate);
 router.get('/import-sample', restrictTo('lecturer', 'admin'), quizController.downloadSample);
 router.get('/attempts/mine', restrictTo('student'), quizController.listMyAttempts);
+router.post('/generate-ai', restrictTo('lecturer', 'admin'), validate(generateAiQuizSchema), quizController.generateAiQuiz);
+router.get('/:id/analytics', restrictTo('lecturer', 'admin'), quizController.getQuizAnalytics);
 router.get('/:id', quizController.getQuiz);
 
 router.post('/', restrictTo('lecturer', 'admin'), validate(createQuizSchema), quizController.createQuiz);
