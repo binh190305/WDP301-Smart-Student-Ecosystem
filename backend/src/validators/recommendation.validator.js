@@ -7,6 +7,7 @@ const limitQuerySchema = Joi.object({
 const chatSchema = Joi.object({
   message: Joi.string().trim().min(1).max(500).required(),
   history: Joi.array().items(Joi.string().max(500)).max(10).default([]),
+  excludeTopics: Joi.array().items(Joi.string().max(200)).max(100).default([]),
   limit: Joi.number().integer().min(1).max(20),
 });
 

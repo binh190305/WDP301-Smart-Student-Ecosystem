@@ -55,7 +55,31 @@ const sanitizeCriteria = (raw, vocab, fallbackTopic) => {
     goal: GOALS.includes(raw.goal) ? raw.goal : null,
     topic: String(raw.topic || '').trim().slice(0, 300) || fallbackTopic,
     summary: String(raw.summary || '').trim().slice(0, 300),
+    intent: INTENTS.includes(raw.intent) ? raw.intent : 'find_team',
   };
+};
+
+// Ý định của tin nhắn: tìm nhóm có sẵn, xin gợi ý đề tài để tự lập nhóm, hay cả hai.
+const INTENTS = ['find_team', 'suggest_topic', 'both'];
+const TOPIC_INTENT_PATTERNS = [
+  /(goi y|de xuat|nghi giup|tu van|y tuong|nen lam|nen chon|chon giup|cho (minh|toi|em|tui) (xin )?(vai |mot |1 )?)[^.?!]{0,30}(de tai|du an|chu de|y tuong)/,
+  /(de tai|du an|chu de|y tuong) (nao|gi)/,
+  /(de tai|du an|chu de|y tuong) khac/,
+  /(them|nua) (vai |mot so |may |)(de tai|y tuong)/,
+  /(de tai|y tuong) (nua|them)/,
+  /(tao|lap|thanh lap|mo|tu lap) (mot |1 |cai |)nhom/,
+];
+const TEAM_INTENT_PATTERNS = [
+  /(tim|kiem|tham gia|gia nhap|xin vao|vao|join) (mot |1 |cac |nhung |)nhom/,
+  /nhom (nao|dang tuyen|con cho|con trong)/,
+];
+
+const detectIntent = (message) => {
+  const folded = fold(message);
+  const wantsTopic = TOPIC_INTENT_PATTERNS.some((re) => re.test(folded));
+  const wantsTeam = TEAM_INTENT_PATTERNS.some((re) => re.test(folded));
+  if (wantsTopic && wantsTeam) return 'both';
+  return wantsTopic ? 'suggest_topic' : 'find_team';
 };
 
 const parseWithRules = (text, vocab) => {
@@ -68,7 +92,7 @@ const parseWithRules = (text, vocab) => {
   ];
   const goals = pick(GOAL_KEYWORDS);
   return sanitizeCriteria(
-    { skills, majors, roles: pick(ROLE_KEYWORDS), goal: goals[0] || null, topic: text },
+    { skills, majors, roles: pick(ROLE_KEYWORDS), goal: goals[0] || null, topic: text, intent: detectIntent(text) },
     vocab,
     text
   );
@@ -82,7 +106,9 @@ const REFINEMENT_PREFIXES = [
 ];
 const isRefinement = (message) => {
   const folded = fold(message).trim();
-  return REFINEMENT_PREFIXES.some((p) => folded.startsWith(p));
+  // "có đề tài khác không", "gợi ý thêm đề tài": xin thêm theo yêu cầu trước
+  const asksForMore = /(de tai|du an|chu de|y tuong|nhom) khac|(them|nua) (vai |mot so |may |)(de tai|y tuong)|(de tai|y tuong) (nua|them)/;
+  return REFINEMENT_PREFIXES.some((p) => folded.startsWith(p)) || asksForMore.test(folded);
 };
 
 const SCHEMA = {
@@ -94,8 +120,9 @@ const SCHEMA = {
     roles: { type: 'array', items: { type: 'string', enum: Object.keys(ROLES) } },
     goal: { type: 'string', enum: [...GOALS, 'none'] },
     summary: { type: 'string', description: 'Một câu tiếng Việt tóm tắt yêu cầu' },
+    intent: { type: 'string', enum: INTENTS },
   },
-  required: ['topic', 'skills', 'majors', 'roles', 'goal', 'summary'],
+  required: ['topic', 'skills', 'majors', 'roles', 'goal', 'summary', 'intent'],
   additionalProperties: false,
 };
 
@@ -107,7 +134,9 @@ Nếu tin nhắn mới mô tả một đề tài/yêu cầu khác thì BỎ QUA 
 - majors: chỉ chọn từ danh sách ngành: ${vocab.majors.join(', ')}
 - roles: vai trò sinh viên muốn đảm nhận hoặc nhóm cần: ${Object.entries(ROLES).map(([k, v]) => `${k} (${v})`).join(', ')}
 - goal: excellent = điểm cao, good = khá, pass = qua môn, none = không nói
-- topic: lĩnh vực/đề tài dự án mong muốn, viết lại ngắn gọn; để trống nếu không nói.`;
+- topic: lĩnh vực/đề tài dự án mong muốn, viết lại ngắn gọn; để trống nếu không nói.
+- intent: find_team = muốn tìm/tham gia nhóm có sẵn (mặc định); suggest_topic = xin gợi ý đề tài/ý tưởng hoặc muốn tự tạo nhóm mới;
+  both = hỏi cả hai. Tin nhắn chỉ bổ sung tiêu chí thì giữ ý định của yêu cầu trước.`;
 
 /**
  * message: tin nhắn hiện tại; history: các tin nhắn trước của sinh viên (string[]).
@@ -131,4 +160,4 @@ const parseTeamQuery = async (message, history, vocab) => {
   return { ...parseWithRules(context, vocab), source: 'rules' };
 };
 
-module.exports = { parseTeamQuery, parseWithRules, sanitizeCriteria, isRefinement, fold };
+module.exports = { parseTeamQuery, parseWithRules, sanitizeCriteria, isRefinement, detectIntent, containsTerm, fold };

@@ -3,6 +3,8 @@ import client from './client';
 export const authApi = {
   register: (payload) => client.post('/auth/register', payload),
   login: (payload) => client.post('/auth/login', payload),
+  google: (credential) => client.post('/auth/google', { credential }),
+  googleConfig: () => client.get('/auth/google/config'),
   me: () => client.get('/auth/me'),
   forgotPassword: (payload) => client.post('/auth/forgot-password', payload),
   resetPassword: (payload) => client.post('/auth/reset-password', payload),

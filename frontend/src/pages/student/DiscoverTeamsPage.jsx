@@ -32,6 +32,14 @@ const DiscoverTeamsPage = () => {
   const [pagination, setPagination] = useState(null);
   const [filters, setFilters] = useState({ search: '', major: '', skill: '', status: 'recruiting', page: 1 });
   const [createOpen, setCreateOpen] = useState(false);
+  // Đề tài AI gợi ý để điền sẵn form; createKey đổi để form khởi tạo lại theo defaults mới
+  const [createDefaults, setCreateDefaults] = useState(null);
+  const [createKey, setCreateKey] = useState(0);
+  const openCreate = (defaults = null) => {
+    setCreateDefaults(defaults);
+    setCreateKey((k) => k + 1);
+    setCreateOpen(true);
+  };
   const [joinTarget, setJoinTarget] = useState(null);
   const [joinMessage, setJoinMessage] = useState('');
   const [joining, setJoining] = useState(false);
@@ -85,7 +93,7 @@ const DiscoverTeamsPage = () => {
         title="Tìm nhóm & Ghép đội"
         description="Để AI gợi ý nhóm phù hợp nhất, hoặc chủ động tìm kiếm và tạo nhóm mới."
         action={
-          <Button onClick={() => setCreateOpen(true)}>
+          <Button onClick={() => openCreate()}>
             <Icon name="plus" className="h-4 w-4" /> Tạo nhóm
           </Button>
         }
@@ -130,7 +138,7 @@ const DiscoverTeamsPage = () => {
 
       {/* Keep the chat mounted so its draft and in-flight replies survive tab switches */}
       <div className={cn(tab !== 'recommended' && 'hidden')}>
-        <AiTeamChat requestedIds={requestedIds} onJoin={setJoinTarget} onCreate={() => setCreateOpen(true)} />
+        <AiTeamChat requestedIds={requestedIds} onJoin={setJoinTarget} onCreate={openCreate} />
       </div>
 
       {tab === 'recommended' ? null : loading ? (
@@ -148,7 +156,13 @@ const DiscoverTeamsPage = () => {
         </>
       )}
 
-      <CreateTeamModal open={createOpen} onClose={() => setCreateOpen(false)} onCreated={() => tab === 'search' && loadSearch()} />
+      <CreateTeamModal
+        key={createKey}
+        open={createOpen}
+        defaults={createDefaults}
+        onClose={() => setCreateOpen(false)}
+        onCreated={() => tab === 'search' && loadSearch()}
+      />
 
       <Modal
         open={Boolean(joinTarget)}

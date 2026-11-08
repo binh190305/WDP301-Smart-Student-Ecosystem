@@ -23,6 +23,7 @@ const SUGGESTIONS = [
   'Nhóm ngành Trí tuệ nhân tạo, mục tiêu điểm cao',
   'Nhóm thiết kế, branding cần người làm website',
   'Nhóm còn ít người, làm web thương mại điện tử',
+  'Gợi ý đề tài để mình tự lập nhóm',
 ];
 
 const OPEN_KEY = 'aiTeamChatOpen';
@@ -122,7 +123,67 @@ const ResultCard = ({ item, requested, onJoin, source }) => {
   );
 };
 
-const AssistantMessage = ({ message, requestedIds, onJoin, onCreate }) => (
+const TopicCard = ({ topic, onCreate }) => (
+  <div className="flex flex-col rounded-xl border border-dashed border-violet-300 bg-white p-4">
+    <p className="font-semibold text-slate-900">{topic.title}</p>
+    <p className="text-sm text-slate-500">{[topic.topic, topic.major].filter(Boolean).join(' · ')}</p>
+    <p className="mt-2 text-sm text-slate-700">{topic.description}</p>
+    {topic.reason && (
+      <p className="mt-2 flex gap-2 rounded-lg bg-violet-50 px-3 py-2 text-sm text-slate-700">
+        <Icon name="sparkles" className="mt-0.5 h-4 w-4 shrink-0 text-violet-600" />
+        <span>{topic.reason}</span>
+      </p>
+    )}
+    <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
+      <div className="flex flex-wrap gap-1.5 text-xs">
+        {topic.skillsNeeded.slice(0, 5).map((skill) => (
+          <span key={skill} className="rounded-full bg-slate-100 px-2 py-0.5 font-medium text-slate-600">
+            {skill}
+          </span>
+        ))}
+      </div>
+      <Button
+        size="sm"
+        variant="secondary"
+        onClick={() =>
+          onCreate({
+            name: topic.title,
+            topic: topic.topic,
+            major: topic.major,
+            description: topic.description,
+            skillsNeeded: topic.skillsNeeded,
+          })
+        }
+      >
+        <Icon name="plus" className="h-4 w-4" /> Tạo nhóm với đề tài này
+      </Button>
+    </div>
+  </div>
+);
+
+const TopicSuggestions = ({ topics, onCreate, hasTeams, onMore }) => {
+  if (!topics?.length) return null;
+  return (
+    <div className="mt-4">
+      <p className="mb-2 flex items-center gap-1.5 text-sm font-medium text-slate-700">
+        <Icon name="sparkles" className="h-4 w-4 text-violet-600" />
+        {hasTeams ? 'Hoặc tự lập nhóm với một đề tài gợi ý:' : 'Bạn có thể tự lập nhóm với một trong các đề tài gợi ý:'}
+      </p>
+      <div className="grid gap-3 lg:grid-cols-2">
+        {topics.map((topic) => (
+          <TopicCard key={topic.title} topic={topic} onCreate={onCreate} />
+        ))}
+      </div>
+      {onMore && (
+        <Button className="mt-3" variant="ghost" size="sm" onClick={onMore}>
+          <Icon name="sparkles" className="h-4 w-4" /> Gợi ý đề tài khác
+        </Button>
+      )}
+    </div>
+  );
+};
+
+const AssistantMessage = ({ message, requestedIds, onJoin, onCreate, onMoreTopics }) => (
   <div className="flex gap-3">
     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white">
       <Icon name="sparkles" className="h-4 w-4" />
@@ -131,7 +192,7 @@ const AssistantMessage = ({ message, requestedIds, onJoin, onCreate }) => (
       {message.loading ? (
         <div className="inline-flex items-center gap-2 rounded-2xl rounded-tl-sm bg-white px-4 py-3 text-sm text-slate-500 shadow-sm">
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-600 border-t-transparent" />
-          Đang tìm nhóm phù hợp...
+          Đang tìm nhóm và đề tài phù hợp...
         </div>
       ) : (
         <>
@@ -159,8 +220,14 @@ const AssistantMessage = ({ message, requestedIds, onJoin, onCreate }) => (
               ))}
             </div>
           )}
-          {message.suggestCreate && (
-            <Button className="mt-3" variant="secondary" size="sm" onClick={onCreate}>
+          <TopicSuggestions
+            topics={message.topicSuggestions}
+            onCreate={onCreate}
+            hasTeams={message.recommendations?.length > 0}
+            onMore={onMoreTopics}
+          />
+          {message.suggestCreate && !message.topicSuggestions?.length && (
+            <Button className="mt-3" variant="secondary" size="sm" onClick={() => onCreate()}>
               <Icon name="plus" className="h-4 w-4" /> Tạo nhóm mới
             </Button>
           )}
@@ -213,7 +280,13 @@ const AiTeamChat = ({ requestedIds, onJoin, onCreate }) => {
       const data = res.data;
       setMessages([
         data.needs_onboarding
-          ? { id, role: 'assistant', text: `${intro} Hồ sơ của bạn chưa có kỹ năng nên mình chưa gợi ý sẵn được, nhưng bạn vẫn có thể mô tả yêu cầu ngay.`, needsOnboarding: true }
+          ? {
+              id,
+              role: 'assistant',
+              text: `${intro} Hồ sơ của bạn chưa có kỹ năng nên mình chưa gợi ý nhóm sẵn được, nhưng bạn vẫn có thể mô tả yêu cầu ngay.`,
+              needsOnboarding: true,
+              topicSuggestions: data.topic_suggestions,
+            }
           : {
               id,
               role: 'assistant',
@@ -223,6 +296,7 @@ const AiTeamChat = ({ requestedIds, onJoin, onCreate }) => {
                 : intro,
               recommendations: data.recommendations,
               suggestCreate: data.suggest_create_team,
+              topicSuggestions: data.topic_suggestions,
             },
       ]);
     } catch (err) {
@@ -249,12 +323,16 @@ const AiTeamChat = ({ requestedIds, onJoin, onCreate }) => {
     const message = text.trim();
     if (!message || sending) return;
     const history = messages.filter((m) => m.role === 'user').map((m) => m.text);
+    // Đề tài đã hiện trong cuộc chat, để AI không gợi ý lại
+    const excludeTopics = [
+      ...new Set(messages.flatMap((m) => (m.topicSuggestions || []).map((t) => t.title))),
+    ].slice(-100);
     const pendingId = newId();
     setMessages((prev) => [...prev, { id: newId(), role: 'user', text: message }, { id: pendingId, role: 'assistant', loading: true }]);
     setInput('');
     setSending(true);
     try {
-      const res = await recommendationApi.chat({ message, history, limit: 5 });
+      const res = await recommendationApi.chat({ message, history, excludeTopics, limit: 5 });
       const data = res.data;
       settleReply(pendingId, {
         id: pendingId,
@@ -265,6 +343,7 @@ const AiTeamChat = ({ requestedIds, onJoin, onCreate }) => {
         recommendations: data.recommendations,
         suggestCreate: data.suggest_create_team,
         needsOnboarding: data.needs_onboarding,
+        topicSuggestions: data.topic_suggestions,
       });
     } catch (err) {
       settleReply(pendingId, { id: pendingId, role: 'assistant', text: err.message || 'Có lỗi xảy ra, bạn thử lại nhé.' });
@@ -301,7 +380,7 @@ const AiTeamChat = ({ requestedIds, onJoin, onCreate }) => {
           <div className="min-w-0">
             <p className="text-sm font-semibold text-slate-900">Trợ lý tìm nhóm AI</p>
             <p className="truncate text-xs text-slate-500">
-              {open ? 'Gợi ý dựa trên yêu cầu của bạn và kỹ năng nhóm đang thiếu' : 'Nhấn để mở chat và mô tả nhóm bạn muốn tìm'}
+              {open ? 'Gợi ý nhóm đang tuyển và đề tài để bạn tự lập nhóm' : 'Nhấn để mở chat và mô tả nhóm bạn muốn tìm'}
             </p>
           </div>
         </button>
@@ -332,7 +411,7 @@ const AiTeamChat = ({ requestedIds, onJoin, onCreate }) => {
       {open && (
       <>
       <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
-        {messages.map((message) =>
+        {messages.map((message, index) =>
           message.role === 'user' ? (
             <UserMessage key={message.id} text={message.text} />
           ) : (
@@ -342,6 +421,8 @@ const AiTeamChat = ({ requestedIds, onJoin, onCreate }) => {
               requestedIds={requestedIds}
               onJoin={onJoin}
               onCreate={onCreate}
+              // Chỉ tin nhắn cuối mới có nút xin thêm đề tài
+              onMoreTopics={index === messages.length - 1 && !sending ? () => send('Có đề tài khác không?') : null}
             />
           )
         )}

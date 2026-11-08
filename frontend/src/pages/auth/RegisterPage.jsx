@@ -4,9 +4,10 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Button, Input } from '../../components/common';
 import AuthShell from './AuthShell';
+import GoogleLoginButton from './GoogleLoginButton';
 
 const RegisterPage = () => {
-  const { register } = useAuth();
+  const { register, loginWithGoogle } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: '', email: '', password: '', major: '' });
@@ -23,6 +24,16 @@ const RegisterPage = () => {
       toast.error(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const submitGoogle = async (credential) => {
+    try {
+      const { isNew } = await loginWithGoogle(credential);
+      toast.success(isNew ? 'Tạo tài khoản bằng Google thành công! Hãy cập nhật hồ sơ của bạn' : 'Email này đã có tài khoản, bạn đã được đăng nhập');
+      navigate(isNew ? '/app/profile' : '/app', { replace: true });
+    } catch (err) {
+      toast.error(err.message);
     }
   };
 
@@ -66,6 +77,8 @@ const RegisterPage = () => {
           Đăng ký
         </Button>
       </form>
+
+      <GoogleLoginButton onCredential={submitGoogle} text="signup_with" />
 
       <p className="mt-6 text-center text-sm text-slate-500">
         Đã có tài khoản?{' '}

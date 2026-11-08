@@ -5,6 +5,7 @@ const { authRateLimit } = require('../middleware/rate-limit');
 const {
   registerSchema,
   loginSchema,
+  googleLoginSchema,
   changePasswordSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
@@ -15,6 +16,8 @@ const router = express.Router();
 
 router.post('/register', authRateLimit, validate(registerSchema), authController.register);
 router.post('/login', authRateLimit, validate(loginSchema), authController.login);
+router.get('/google/config', authController.googleConfig);
+router.post('/google', authRateLimit, validate(googleLoginSchema), authController.googleLogin);
 router.post('/forgot-password', authRateLimit, validate(forgotPasswordSchema), authController.forgotPassword);
 router.post('/reset-password', authRateLimit, validate(resetPasswordSchema), authController.resetPassword);
 router.get('/me', protect, authController.me);
