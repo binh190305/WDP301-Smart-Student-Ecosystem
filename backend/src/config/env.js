@@ -15,4 +15,11 @@ module.exports = {
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  // Đăng nhập Google: để trống thì nút Google bị ẩn
+  googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+  // Giới hạn tên miền email (VD: "fpt.edu.vn,gmail.com"); để trống = cho phép mọi tài khoản Google
+  googleAllowedDomains: (process.env.GOOGLE_ALLOWED_DOMAINS || '')
+    .split(',')
+    .map((d) => d.trim().toLowerCase())
+    .filter(Boolean),
 };

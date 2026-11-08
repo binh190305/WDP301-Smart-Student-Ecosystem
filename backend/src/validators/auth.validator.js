@@ -12,6 +12,10 @@ const loginSchema = Joi.object({
   password: Joi.string().required(),
 });
 
+const googleLoginSchema = Joi.object({
+  credential: Joi.string().max(4096).required(),
+});
+
 const changePasswordSchema = Joi.object({
   currentPassword: Joi.string().required(),
   newPassword: Joi.string().min(8).max(72).required().invalid(Joi.ref('currentPassword')),
@@ -29,6 +33,7 @@ const resetPasswordSchema = Joi.object({
 module.exports = {
   registerSchema,
   loginSchema,
+  googleLoginSchema,
   changePasswordSchema,
   forgotPasswordSchema,
   resetPasswordSchema,

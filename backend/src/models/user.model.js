@@ -34,6 +34,8 @@ const userSchema = new mongoose.Schema(
     goal: { type: String, enum: [...GOALS, null], default: null },
     pushTokens: { type: [String], default: [], select: false },
     lastLoginAt: { type: Date, default: null },
+    // ID tài khoản Google (claim "sub") khi đã liên kết đăng nhập Google
+    googleId: { type: String, default: undefined, select: false },
     tokenVersion: { type: Number, default: 0 },
     passwordResetTokenHash: { type: String, default: null, select: false },
     passwordResetExpiresAt: { type: Date, default: null, select: false },
@@ -42,6 +44,7 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.index({ role: 1, isActive: 1 });
+userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
 userSchema.index({ role: 1, isActive: 1, createdAt: -1 });
 userSchema.index({ role: 1, isActive: 1, major: 1, createdAt: -1 });
 userSchema.index({ role: 1, isActive: 1, skills: 1, createdAt: -1 });

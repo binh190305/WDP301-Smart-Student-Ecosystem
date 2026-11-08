@@ -1,8 +1,11 @@
 const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/user.model');
 const AppError = require('../utils/app-error');
 const { signToken } = require('../utils/token');
-const { nodeEnv } = require('../config/env');
+const { nodeEnv, googleClientId, googleAllowedDomains } = require('../config/env');
+
+const googleClient = new OAuth2Client();
 
 const RESET_TOKEN_TTL_MS = 15 * 60 * 1000;
 
@@ -34,6 +37,62 @@ const login = async ({ email, password }) => {
 
   const token = createAccessToken(user);
   return { token, user: user.toPublicJSON() };
+};
+
+// Xác thực ID token do Google Identity Services trả về (chữ ký, hạn dùng, audience = client ID của mình).
+const verifyGoogleCredential = async (credential) => {
+  if (!googleClientId) throw new AppError('Đăng nhập Google chưa được cấu hình', 503);
+  let payload;
+  try {
+    const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: googleClientId });
+    payload = ticket.getPayload();
+  } catch {
+    throw new AppError('Phiên đăng nhập Google không hợp lệ, vui lòng thử lại', 401);
+  }
+  if (!payload?.email || !payload.email_verified) {
+    throw new AppError('Email Google của bạn chưa được xác minh', 401);
+  }
+  const email = payload.email.toLowerCase();
+  const domain = email.split('@')[1];
+  if (googleAllowedDomains.length && !googleAllowedDomains.includes(domain)) {
+    throw new AppError(`Chỉ chấp nhận email thuộc: ${googleAllowedDomains.join(', ')}`, 403);
+  }
+  return { googleId: payload.sub, email, name: payload.name || email.split('@')[0], picture: payload.picture || '' };
+};
+
+// Đăng nhập (hoặc tự đăng ký) bằng Google. Email đã có tài khoản thì liên kết vào tài khoản đó.
+const loginWithGoogle = async ({ credential }) => {
+  const profile = await verifyGoogleCredential(credential);
+
+  let user = await User.findOne({ googleId: profile.googleId }).select('+googleId');
+  if (!user) user = await User.findOne({ email: profile.email }).select('+googleId');
+  if (user?.googleId && user.googleId !== profile.googleId) {
+    throw new AppError('Email này đã liên kết với một tài khoản Google khác', 409);
+  }
+
+  let isNew = false;
+  if (!user) {
+    isNew = true;
+    user = new User({
+      name: profile.name.slice(0, 100),
+      email: profile.email,
+      // Mật khẩu ngẫu nhiên không ai biết; muốn đăng nhập bằng mật khẩu thì dùng "Quên mật khẩu"
+      password: crypto.randomBytes(32).toString('hex'),
+      avatarUrl: profile.picture,
+      role: 'student',
+      googleId: profile.googleId,
+    });
+  } else {
+    if (!user.isActive) throw new AppError('Tài khoản của bạn đã bị vô hiệu hóa', 403);
+    user.googleId = profile.googleId;
+    if (!user.avatarUrl && profile.picture) user.avatarUrl = profile.picture;
+  }
+  user.lastLoginAt = new Date();
+  // Giống đăng nhập thường: không chặn tài khoản cũ vì dữ liệu hồ sơ chưa hợp lệ
+  await user.save(isNew ? {} : { validateBeforeSave: false });
+
+  const token = createAccessToken(user);
+  return { token, user: user.toPublicJSON(), isNew };
 };
 
 const changePassword = async (userId, { currentPassword, newPassword }) => {
@@ -84,4 +143,4 @@ const logout = async (userId) => {
   await User.updateOne({ _id: userId }, { $inc: { tokenVersion: 1 } });
 };
 
-module.exports = { register, login, changePassword, forgotPassword, resetPassword, logout };
+module.exports = { register, login, loginWithGoogle, changePassword, forgotPassword, resetPassword, logout };
