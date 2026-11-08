@@ -13,6 +13,7 @@ const questionSchema = new mongoose.Schema(
       required: true,
       validate: (v) => Array.isArray(v) && v.length >= 1,
     },
+    explanation: { type: String, default: '' },
   },
   { _id: false }
 );
@@ -24,6 +25,10 @@ const quizSchema = new mongoose.Schema(
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     questions: { type: [questionSchema], default: [] },
     isPublished: { type: Boolean, default: true },
+    timeLimitMinutes: { type: Number, default: 0, min: 0 },
+    maxAttempts: { type: Number, default: 0, min: 0 },
+    passingPercentage: { type: Number, default: 50, min: 0, max: 100 },
+    shuffleQuestions: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

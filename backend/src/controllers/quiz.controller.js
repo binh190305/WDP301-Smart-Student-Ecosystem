@@ -1,5 +1,6 @@
 const asyncHandler = require('../utils/async-handler');
 const quizService = require('../services/quiz.service');
+const aiQuizService = require('../services/ai-quiz.service');
 const fs = require('fs/promises');
 const path = require('path');
 const { createTemplateWorkbook } = require('../utils/quiz-workbook');
@@ -50,8 +51,18 @@ const getQuiz = asyncHandler(async (req, res) => {
 });
 
 const submitAttempt = asyncHandler(async (req, res) => {
-  const result = await quizService.submitAttempt(req.params.id, req.user.id, req.body.answers);
+  const result = await quizService.submitAttempt(req.params.id, req.user.id, req.body);
   res.status(201).json({ success: true, data: result });
+});
+
+const generateAiQuiz = asyncHandler(async (req, res) => {
+  const questions = await aiQuizService.generateQuizQuestions(req.body);
+  res.status(200).json({ success: true, data: { questions } });
+});
+
+const getQuizAnalytics = asyncHandler(async (req, res) => {
+  const analytics = await quizService.getQuizAnalytics(req.params.id, req.user);
+  res.status(200).json({ success: true, data: analytics });
 });
 
 const listMyAttempts = asyncHandler(async (req, res) => {
@@ -77,6 +88,8 @@ module.exports = {
   listQuizzes,
   getQuiz,
   submitAttempt,
+  generateAiQuiz,
+  getQuizAnalytics,
   listMyAttempts,
   updateQuiz,
   deleteQuiz,

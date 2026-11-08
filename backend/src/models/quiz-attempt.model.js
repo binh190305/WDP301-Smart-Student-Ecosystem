@@ -7,6 +7,10 @@ const quizAttemptSchema = new mongoose.Schema(
     answers: { type: [[Number]], default: [] },
     score: { type: Number, required: true },
     totalQuestions: { type: Number, required: true },
+    percentage: { type: Number, default: 0 },
+    passed: { type: Boolean, default: false },
+    timeSpentSeconds: { type: Number, default: 0 },
+    attemptNumber: { type: Number, default: 1 },
   },
   { timestamps: true }
 );

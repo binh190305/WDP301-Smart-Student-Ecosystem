@@ -4,7 +4,12 @@ import { useToast } from '../../context/ToastContext';
 import { Modal, Button, Input, Select } from '../../components/common';
 import Icon from '../../components/common/Icon';
 
-const emptyQuestion = () => ({ questionText: '', options: ['', ''], correctIndexes: [0] });
+const emptyQuestion = () => ({
+  questionText: '',
+  options: ['', ''],
+  correctIndexes: [0],
+  explanation: '',
+});
 
 const QuizBuilderModal = ({ open, onClose, onSaved, courses, quiz }) => {
   const toast = useToast();
@@ -12,6 +17,10 @@ const QuizBuilderModal = ({ open, onClose, onSaved, courses, quiz }) => {
   const [title, setTitle] = useState('');
   const [course, setCourse] = useState('');
   const [isPublished, setIsPublished] = useState(true);
+  const [timeLimitMinutes, setTimeLimitMinutes] = useState(0);
+  const [maxAttempts, setMaxAttempts] = useState(0);
+  const [passingPercentage, setPassingPercentage] = useState(50);
+  const [shuffleQuestions, setShuffleQuestions] = useState(false);
   const [questions, setQuestions] = useState([emptyQuestion()]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -22,6 +31,10 @@ const QuizBuilderModal = ({ open, onClose, onSaved, courses, quiz }) => {
       setTitle('');
       setCourse('');
       setIsPublished(true);
+      setTimeLimitMinutes(0);
+      setMaxAttempts(0);
+      setPassingPercentage(50);
+      setShuffleQuestions(false);
       setQuestions([emptyQuestion()]);
       return;
     }
@@ -33,11 +46,16 @@ const QuizBuilderModal = ({ open, onClose, onSaved, courses, quiz }) => {
         setTitle(full.title);
         setCourse(full.course?._id || '');
         setIsPublished(full.isPublished !== false);
+        setTimeLimitMinutes(full.timeLimitMinutes || 0);
+        setMaxAttempts(full.maxAttempts || 0);
+        setPassingPercentage(full.passingPercentage || 50);
+        setShuffleQuestions(Boolean(full.shuffleQuestions));
         setQuestions(
           full.questions.map((q) => ({
             questionText: q.questionText,
             options: [...q.options],
             correctIndexes: q.correctIndexes?.length ? [...q.correctIndexes] : [0],
+            explanation: q.explanation || '',
           }))
         );
       })
@@ -85,6 +103,7 @@ const QuizBuilderModal = ({ open, onClose, onSaved, courses, quiz }) => {
       questionText: q.questionText.trim(),
       options: q.options.map((o) => o.trim()).filter(Boolean),
       correctIndexes: q.correctIndexes,
+      explanation: (q.explanation || '').trim(),
     }));
     if (!title.trim()) return toast.error('Vui lòng nhập tiêu đề');
     if (cleaned.some((q) => !q.questionText || q.options.length < 2)) {
@@ -95,7 +114,16 @@ const QuizBuilderModal = ({ open, onClose, onSaved, courses, quiz }) => {
     }
     setSaving(true);
     try {
-      const payload = { title: title.trim(), course: course || null, questions: cleaned, isPublished };
+      const payload = {
+        title: title.trim(),
+        course: course || null,
+        questions: cleaned,
+        isPublished,
+        timeLimitMinutes: Number(timeLimitMinutes) || 0,
+        maxAttempts: Number(maxAttempts) || 0,
+        passingPercentage: Number(passingPercentage) || 50,
+        shuffleQuestions: Boolean(shuffleQuestions),
+      };
       const res = isEditing ? await quizApi.update(quiz._id, payload) : await quizApi.create(payload);
       toast.success(isEditing ? 'Đã cập nhật bộ câu hỏi' : 'Đã tạo bộ câu hỏi');
       onSaved?.(res.data.quiz);
@@ -133,15 +161,58 @@ const QuizBuilderModal = ({ open, onClose, onSaved, courses, quiz }) => {
           </Select>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-slate-700">
-          <input
-            type="checkbox"
-            checked={isPublished}
-            onChange={(e) => setIsPublished(e.target.checked)}
-            className="h-4 w-4 rounded border-slate-300 text-brand-600"
-          />
-          Công bố cho sinh viên (bỏ chọn để lưu nháp)
-        </label>
+        {/* Cài đặt phòng thi */}
+        <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+          <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-500">Cài đặt quy chế bài thi</p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Input
+              label="Thời gian làm (phút)"
+              type="number"
+              min="0"
+              max="300"
+              value={timeLimitMinutes}
+              onChange={(e) => setTimeLimitMinutes(e.target.value)}
+              placeholder="0 = Không giới hạn"
+            />
+            <Input
+              label="Số lần làm tối đa"
+              type="number"
+              min="0"
+              max="50"
+              value={maxAttempts}
+              onChange={(e) => setMaxAttempts(e.target.value)}
+              placeholder="0 = Không giới hạn"
+            />
+            <Input
+              label="Điểm đạt (%)"
+              type="number"
+              min="0"
+              max="100"
+              value={passingPercentage}
+              onChange={(e) => setPassingPercentage(e.target.value)}
+            />
+          </div>
+          <div className="mt-3 flex flex-wrap gap-4 text-sm text-slate-700">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={shuffleQuestions}
+                onChange={(e) => setShuffleQuestions(e.target.checked)}
+                className="h-4 w-4 rounded border-slate-300 text-brand-600"
+              />
+              Đảo ngẫu nhiên câu hỏi khi sinh viên làm bài
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isPublished}
+                onChange={(e) => setIsPublished(e.target.checked)}
+                className="h-4 w-4 rounded border-slate-300 text-brand-600"
+              />
+              Công bố cho sinh viên (bỏ chọn để lưu nháp)
+            </label>
+          </div>
+        </div>
 
         {questions.map((question, qIndex) => (
           <div key={qIndex} className="rounded-xl border border-slate-200 p-4">
@@ -170,7 +241,7 @@ const QuizBuilderModal = ({ open, onClose, onSaved, courses, quiz }) => {
                     type="checkbox"
                     checked={question.correctIndexes.includes(oIndex)}
                     onChange={() => toggleCorrect(qIndex, oIndex)}
-                    className="h-4 w-4 rounded text-brand-600"
+                    className="h-4 w-4 rounded text-brand-600 cursor-pointer"
                     title="Đánh dấu đáp án đúng"
                   />
                   <input
@@ -200,6 +271,19 @@ const QuizBuilderModal = ({ open, onClose, onSaved, courses, quiz }) => {
                 + Thêm lựa chọn
               </button>
             )}
+
+            <div className="mt-3 border-t border-slate-100 pt-3">
+              <label className="mb-1 block text-xs font-semibold text-slate-600">
+                💡 Lời giải thích chi tiết cho sinh viên:
+              </label>
+              <input
+                type="text"
+                value={question.explanation || ''}
+                onChange={(e) => updateQuestion(qIndex, { explanation: e.target.value })}
+                placeholder="Giải thích vì sao đáp án này đúng (tùy chọn)..."
+                className="w-full rounded border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-700"
+              />
+            </div>
           </div>
         ))}
 
