@@ -20,6 +20,7 @@ const { getEmbeddingProvider } = require('./embedding/providers');
 const { normalizeSkill } = require('./skill-catalog');
 const { parseTeamQuery } = require('./llm/query-parser');
 const { explain } = require('./llm/explainer');
+const { suggestTopics } = require('./llm/topic-suggester');
 
 const MEMBER_FIELDS = 'name avatarUrl major gpa skills skillLevels preferredRoles goal interests description';
 
@@ -134,19 +135,22 @@ const formatTeamResults = async (context, items, { criteria = null, source, want
 };
 
 const getGroupRecommendations = async (studentId, { limit } = {}) => {
-  const context = await loadStudentContext(studentId);
+  const [context, vocab] = await Promise.all([loadStudentContext(studentId), loadVocab()]);
   const result = recommendGroupsForStudent(
     context.student,
     context.teamProfiles,
     context.ctx,
     clampLimit(limit, config.defaultLimits.groups)
   );
-  if (result.needs_onboarding) return { ...result, recommendations: [] };
-  const { recommendations } = await formatTeamResults(context, result.recommendations, {
-    source: 'profile',
-    needsOnboarding: false,
-  });
-  return { ...result, recommendations };
+  const topicsPromise = suggestTopicsFor(context, vocab);
+  if (result.needs_onboarding) {
+    return { ...result, recommendations: [], topic_suggestions: await topicsPromise };
+  }
+  const [{ recommendations }, topicSuggestions] = await Promise.all([
+    formatTeamResults(context, result.recommendations, { source: 'profile', needsOnboarding: false }),
+    topicsPromise,
+  ]);
+  return { ...result, recommendations, topic_suggestions: topicSuggestions };
 };
 
 const loadVocab = async () => {
@@ -159,6 +163,15 @@ const loadVocab = async () => {
     skills: [...new Set(skills.map(normalizeSkill))],
     majors: [...new Set([...userMajors, ...teamMajors].filter(Boolean))],
   };
+};
+
+// Đề tài gợi ý để tự lập nhóm; tránh trùng các nhóm đang tuyển. Lỗi thì trả mảng rỗng.
+const suggestTopicsFor = (context, vocab, criteria = null, excludeTopics = []) => {
+  const existingTopics = [...context.docs.values()].flatMap((d) => [d.name, d.topic]).filter(Boolean);
+  return suggestTopics({ user: context.user, criteria, existingTopics, excludeTopics, vocab }).catch((err) => {
+    console.warn(`[recommendation] không gợi ý được đề tài: ${err.message}`);
+    return [];
+  });
 };
 
 const embedQuery = async (text) => {
@@ -181,8 +194,23 @@ const isRelevant = (criteria, result) => {
   return result.relevance >= config.chat.minRelevance;
 };
 
+const topicReply = (count, criteria, isMore = false) => {
+  if (!count && isMore) {
+    return 'Mình đã gợi ý hết các đề tài phù hợp với yêu cầu này. Bạn thử mô tả lĩnh vực khác, hoặc bấm "Bắt đầu lại" để xem lại từ đầu nhé.';
+  }
+  if (!count) return 'Mình chưa nghĩ ra đề tài phù hợp lúc này. Bạn thử mô tả lĩnh vực hoặc kỹ năng muốn dùng nhé.';
+  if (isMore) return `Đây là ${count} đề tài khác, không trùng với các đề tài mình đã gợi ý. Chọn một đề tài và bấm "Tạo nhóm với đề tài này" để lập nhóm ngay.`;
+  const parts = [];
+  if (criteria.majors.length) parts.push(`ngành ${criteria.majors.join(', ')}`);
+  if (criteria.skills.length) parts.push(`kỹ năng ${criteria.skills.join(', ')}`);
+  const about = parts.length ? `theo yêu cầu ${parts.join('; ')} và hồ sơ của bạn` : 'dựa trên hồ sơ và yêu cầu của bạn';
+  return `Đây là ${count} đề tài mình gợi ý ${about}. Chọn một đề tài và bấm "Tạo nhóm với đề tài này" để lập nhóm ngay.`;
+};
+
 // Chat: sinh viên mô tả nhóm muốn tìm, hệ thống trả về câu trả lời + danh sách nhóm.
-const chatGroupRecommendations = async (studentId, { message, history = [], limit } = {}) => {
+const chatGroupRecommendations = async (studentId, { message, history = [], excludeTopics = [], limit } = {}) => {
+  // Đề tài đã gợi ý trong cuộc chat: không đưa lại
+  const shownTopics = [...new Set(excludeTopics.filter((t) => typeof t === 'string' && t.trim()).map((t) => t.trim()))];
   const text = String(message || '').trim().slice(0, config.chat.maxMessageLength);
   if (!text) throw new AppError('Vui lòng nhập yêu cầu tìm nhóm', 400);
   const prior = history
@@ -192,6 +220,23 @@ const chatGroupRecommendations = async (studentId, { message, history = [], limi
 
   const [context, vocab] = await Promise.all([loadStudentContext(studentId), loadVocab()]);
   const criteria = await parseTeamQuery(text, prior, vocab);
+  const needsOnboarding = context.student.skills.size === 0;
+  logEvents([{ user: context.user._id, kind: 'chat_query', direction: 'student_to_team', source: 'chat', query: { message: text, ...criteria } }]);
+
+  // Chỉ xin gợi ý đề tài: trả đề tài, không kèm nhóm.
+  if (criteria.intent === 'suggest_topic') {
+    const topicSuggestions = await suggestTopicsFor(context, vocab, criteria, shownTopics);
+    return {
+      reply: topicReply(topicSuggestions.length, criteria, shownTopics.length > 0),
+      criteria,
+      intent: criteria.intent,
+      needs_onboarding: needsOnboarding,
+      suggest_create_team: topicSuggestions.length === 0,
+      recommendations: [],
+      topic_suggestions: topicSuggestions,
+    };
+  }
+
   // Câu hỏi là văn bản mới nên phải tính embedding lúc gọi (chỉ 1 câu, model đã nạp sẵn).
   const queryVector = await embedQuery(criteria.topic || text);
 
@@ -217,22 +262,20 @@ const chatGroupRecommendations = async (studentId, { message, history = [], limi
     .slice(0, clampLimit(limit, config.defaultLimits.groups))
     .map(({ relevance, ...r }) => r);
 
-  const needsOnboarding = context.student.skills.size === 0;
-  const { reply, recommendations } = await formatTeamResults(context, ranked, {
-    criteria,
-    source: 'chat',
-    wantReply: true,
-    needsOnboarding,
-  });
-
-  logEvents([{ user: context.user._id, kind: 'chat_query', direction: 'student_to_team', source: 'chat', query: { message: text, ...criteria } }]);
+  // Tìm nhóm: chỉ kèm đề tài khi hỏi cả hai hoặc không có nhóm nào khớp (để tự lập nhóm).
+  const [{ reply, recommendations }, topicSuggestions] = await Promise.all([
+    formatTeamResults(context, ranked, { criteria, source: 'chat', wantReply: true, needsOnboarding }),
+    criteria.intent === 'both' || ranked.length === 0 ? suggestTopicsFor(context, vocab, criteria, shownTopics) : [],
+  ]);
 
   return {
     reply,
     criteria,
+    intent: criteria.intent,
     needs_onboarding: needsOnboarding,
     suggest_create_team: recommendations.length === 0,
     recommendations,
+    topic_suggestions: topicSuggestions,
   };
 };
 
