@@ -42,60 +42,121 @@ const buildUserPrompt = ({ prompt, text, questionCount = 5, difficulty = 'medium
 };
 
 // Gọi Google Gemini API (gemini-1.5-flash / gemini-2.0-flash)
+// const generateWithGemini = async ({ prompt, text, questionCount, difficulty, customKey }) => {
+//   const apiKey = (customKey || process.env.GEMINI_API_KEY || '').trim();
+//   if (!apiKey) return null;
+
+//   // Thử model mới nhất theo khuyến nghị của Google AI Studio: gemini-3.8-flash -> gemini-2.5-flash -> gemini-1.5-flash
+//   const models = [
+//     process.env.GEMINI_MODEL,
+//     'gemini-3.8-flash',
+//     'gemini-2.5-flash',
+//     'gemini-1.5-flash',
+//   ].filter(Boolean);
+//   let lastError = null;
+
+//   const userContent = buildUserPrompt({ prompt, text, questionCount, difficulty });
+//   const body = {
+//     contents: [
+//       {
+//         role: 'user',
+//         parts: [{ text: `${SYSTEM_PROMPT}\n\n${userContent}` }],
+//       },
+//     ],
+//     generationConfig: {
+//       temperature: 0.7,
+//       responseMimeType: 'application/json',
+//     },
+//   };
+
+//   for (const model of models) {
+//     try {
+//       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+//       const res = await fetch(url, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify(body),
+//       });
+
+//       if (!res.ok) {
+//         const errorText = await res.text();
+//         throw new Error(`${model} error ${res.status}: ${errorText}`);
+//       }
+
+//       const data = await res.json();
+//       const textOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+//       if (!textOutput) throw new Error('Gemini không trả về nội dung');
+
+//       const cleanJson = textOutput.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
+//       const parsed = JSON.parse(cleanJson);
+//       return parsed.questions || parsed;
+//     } catch (err) {
+//       lastError = err;
+//     }
+//   }
+
+//   throw new Error(`Google Gemini API thất bại: ${lastError?.message}`);
+// };
+
 const generateWithGemini = async ({ prompt, text, questionCount, difficulty, customKey }) => {
   const apiKey = (customKey || process.env.GEMINI_API_KEY || '').trim();
   if (!apiKey) return null;
 
-  // Thử model mới nhất theo khuyến nghị của Google AI Studio: gemini-3.8-flash -> gemini-2.5-flash -> gemini-1.5-flash
   const models = [
     process.env.GEMINI_MODEL,
     'gemini-3.8-flash',
-    'gemini-2.5-flash',
-    'gemini-1.5-flash',
+    'gemini-3.5-flash-lite',
   ].filter(Boolean);
-  let lastError = null;
 
   const userContent = buildUserPrompt({ prompt, text, questionCount, difficulty });
   const body = {
-    contents: [
-      {
-        role: 'user',
-        parts: [{ text: `${SYSTEM_PROMPT}\n\n${userContent}` }],
-      },
-    ],
+    systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+    contents: [{ role: 'user', parts: [{ text: userContent }] }],
     generationConfig: {
       temperature: 0.7,
       responseMimeType: 'application/json',
     },
   };
 
+  const errors = [];
+
   for (const model of models) {
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
       const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
         body: JSON.stringify(body),
       });
 
       if (!res.ok) {
         const errorText = await res.text();
-        throw new Error(`${model} error ${res.status}: ${errorText}`);
+        const err = new Error(`${model} error ${res.status}: ${errorText}`);
+        err.status = res.status;
+        throw err;
       }
 
       const data = await res.json();
-      const textOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!textOutput) throw new Error('Gemini không trả về nội dung');
+      const parts = data?.candidates?.[0]?.content?.parts || [];
+      const textOutput = parts.map((p) => p.text || '').join('').trim();
+      if (!textOutput) throw new Error(`${model}: Gemini không trả về nội dung`);
 
-      const cleanJson = textOutput.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
+      const cleanJson = textOutput.replace(/```(?:json)?/gi, '').trim();
       const parsed = JSON.parse(cleanJson);
       return parsed.questions || parsed;
     } catch (err) {
-      lastError = err;
+      errors.push(err.message);
+      console.error('[Gemini]', err.message);
+
+      // Key sai / request sai: thử model khác cũng vô ích
+      if (err.status === 400 || err.status === 401 || err.status === 403) break;
     }
   }
 
-  throw new Error(`Google Gemini API thất bại: ${lastError?.message}`);
+  throw new Error(`Google Gemini API thất bại:\n${errors.join('\n')}`);
 };
 
 // Gọi OpenAI API (gpt-4o-mini)
