@@ -5,7 +5,7 @@ const Pagination = ({ pagination, onChange }) => {
   const { page, totalPages, total } = pagination;
 
   return (
-    <div className="flex items-center justify-between gap-4 pt-2">
+    <nav aria-label="Điều hướng phân trang" className="flex items-center justify-between gap-4 pt-2">
       <p className="text-sm text-slate-500">
         Trang {page}/{totalPages} · Tổng {total} mục
       </p>
@@ -17,7 +17,7 @@ const Pagination = ({ pagination, onChange }) => {
           Sau
         </Button>
       </div>
-    </div>
+    </nav>
   );
 };
 
