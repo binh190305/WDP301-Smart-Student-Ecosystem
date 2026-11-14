@@ -51,12 +51,11 @@ export default function AiSkillAnalysisPage() {
       try {
         setLoadingTemplates(true);
         const res = await skillIntelligenceApi.getTemplates();
-        if (res.data?.success) {
-          const list = res.data.data || [];
-          setTemplates(list);
-          if (list.length > 0) {
-            setSelectedTemplateId(list[0].code || list[0]._id);
-          }
+        const payload = res?.data || res;
+        const list = Array.isArray(payload) ? payload : (payload?.data || payload?.templates || []);
+        setTemplates(list);
+        if (list.length > 0) {
+          setSelectedTemplateId(list[0].code || list[0]._id);
         }
       } catch {
         showToast('Không thể tải danh sách dự án mẫu từ hệ thống', 'error');
@@ -97,16 +96,18 @@ export default function AiSkillAnalysisPage() {
       };
 
       const res = await skillIntelligenceApi.analyzeProjectRequirements(payload);
-      if (res.data?.success) {
-        setProjectRequirements(res.data.data);
-        setEditableSkills(res.data.data.requirements || []);
+      const data = res?.data || res;
+      if (res?.success || data?.success || data?.requirements) {
+        const result = data.data || data;
+        setProjectRequirements(result);
+        setEditableSkills(result.requirements || []);
         showToast(
-          `Đã trích xuất & chuẩn hoá thành công ${res.data.data.totalSkills} kỹ năng yêu cầu`,
+          `Đã trích xuất & chuẩn hoá thành công ${result.totalSkills || result.requirements?.length} kỹ năng yêu cầu`,
           'success'
         );
       }
     } catch (err) {
-      showToast(err.response?.data?.message || 'Lỗi khi phân tích yêu cầu dự án', 'error');
+      showToast(err.response?.data?.message || err.message || 'Lỗi khi phân tích yêu cầu dự án', 'error');
     } finally {
       setProcessingPipeline(false);
     }
@@ -164,12 +165,13 @@ export default function AiSkillAnalysisPage() {
         targetSkills: editableSkills,
         projectDescription: projectText,
       });
-      if (res.data?.success) {
-        setGapResult(res.data.data);
+      const data = res?.data || res;
+      if (res?.success || data?.success || data?.readinessScore !== undefined) {
+        setGapResult(data.data || data);
         showToast('Đã hoàn thành phân tích khoảng cách năng lực dựa trên bằng chứng!', 'success');
       }
     } catch (err) {
-      showToast(err.response?.data?.message || 'Lỗi khi đo khoảng cách kỹ năng', 'error');
+      showToast(err.response?.data?.message || err.message || 'Lỗi khi đo khoảng cách kỹ năng', 'error');
     } finally {
       setAnalyzingGap(false);
     }

@@ -58,10 +58,38 @@ const getProfile = async (studentId, filters = {}) => {
   if (filters.classification) query.classification = filters.classification;
   if (filters.taxonomyId) query.taxonomy = filters.taxonomyId;
 
-  const skills = await StudentSkill.find(query)
+  const rawSkills = await StudentSkill.find(query)
     .populate('taxonomy', 'name normalizedName type description')
     .sort({ proficiencyLevel: -1, updatedAt: -1 })
     .lean();
+
+  const skills = rawSkills.map((s) => {
+    const classification =
+      s.classification ||
+      (s.verificationStatus === 'VERIFIED'
+        ? 'verified'
+        : s.verificationStatus === 'ASSESSED'
+        ? 'assessed'
+        : s.status === 'confirmed'
+        ? 'assessed'
+        : 'self_reported');
+
+    const verificationStatus =
+      s.verificationStatus ||
+      (classification === 'verified'
+        ? 'VERIFIED'
+        : classification === 'assessed'
+        ? 'ASSESSED'
+        : s.status === 'confirmed'
+        ? 'ASSESSED'
+        : 'SELF_REPORTED');
+
+    return {
+      ...s,
+      classification,
+      verificationStatus,
+    };
+  });
 
   const metrics = await getProfileMetrics(studentId);
 

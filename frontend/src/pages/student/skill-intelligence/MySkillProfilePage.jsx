@@ -115,14 +115,17 @@ export default function MySkillProfilePage() {
     try {
       setLoading(true);
       const res = await skillIntelligenceApi.getMySkills();
-      if (res.data?.success) {
-        setSkills(res.data.data.skills || []);
-        if (res.data.data.metrics) {
-          setMetrics(res.data.data.metrics);
+      const payload = res?.data || res;
+      if (res?.success || payload?.success || payload?.skills) {
+        const skillsList = payload.skills || payload.data?.skills || [];
+        setSkills(skillsList);
+        const metricsData = payload.metrics || payload.data?.metrics;
+        if (metricsData) {
+          setMetrics(metricsData);
         }
       }
     } catch (err) {
-      showToast(err.response?.data?.message || 'Không thể tải hồ sơ kỹ năng', 'error');
+      showToast(err.response?.data?.message || err.message || 'Không thể tải hồ sơ kỹ năng', 'error');
     } finally {
       setLoading(false);
     }
@@ -134,11 +137,15 @@ export default function MySkillProfilePage() {
         assignmentApi.myGradebook(),
         quizApi.list({ limit: 50 }),
       ]);
-      if (gbRes.status === 'fulfilled' && gbRes.value.data?.success) {
-        setMyGradebook(gbRes.value.data.data?.submissions || []);
+      if (gbRes.status === 'fulfilled') {
+        const gbPayload = gbRes.value?.data || gbRes.value;
+        const list = gbPayload?.submissions || gbPayload?.data?.submissions || [];
+        setMyGradebook(list);
       }
-      if (qRes.status === 'fulfilled' && qRes.value.data?.success) {
-        setMyQuizzes(qRes.value.data.data?.quizzes || []);
+      if (qRes.status === 'fulfilled') {
+        const qPayload = qRes.value?.data || qRes.value;
+        const list = qPayload?.quizzes || qPayload?.data?.quizzes || [];
+        setMyQuizzes(list);
       }
     } catch {
       // ignore
