@@ -21,5 +21,7 @@ router.use('/posts', require('./post.routes'));
 router.use('/notifications', require('./notification.routes'));
 router.use('/admin', require('./admin.routes'));
 router.use(require('./recommendation.routes'));
+// AI CORE 01 – Skill Intelligence
+router.use('/skill-intelligence', require('./skill-intelligence.routes'));
 
 module.exports = router;

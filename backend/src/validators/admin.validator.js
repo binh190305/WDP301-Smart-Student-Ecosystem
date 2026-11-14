@@ -14,7 +14,7 @@ const createClubSchema = Joi.object({
   category: objectId.allow(null),
   leader: objectId.required(),
   contactEmail: Joi.string().email().required(),
-  logoUrl: Joi.string().uri().allow(''),
+  logoUrl: Joi.string().uri({ allowRelative: true }).max(2048).allow('', null),
   status: Joi.string().valid('active', 'inactive'),
 });
 
@@ -24,7 +24,7 @@ const updateClubSchema = Joi.object({
   category: objectId.allow(null),
   leader: objectId,
   contactEmail: Joi.string().email(),
-  logoUrl: Joi.string().uri().allow(''),
+  logoUrl: Joi.string().uri({ allowRelative: true }).max(2048).allow('', null),
   status: Joi.string().valid('active', 'inactive'),
 }).min(1);
 
@@ -40,7 +40,7 @@ const createClubRegistrationSchema = Joi.object({
   description: Joi.string().min(20).max(3000).required(),
   category: objectId.allow(null),
   contactEmail: Joi.string().email().required(),
-  logoUrl: Joi.string().uri().allow(''),
+  logoUrl: Joi.string().uri({ allowRelative: true }).max(2048).allow('', null),
 });
 
 const listClubRegistrationsQuerySchema = Joi.object({

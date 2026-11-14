@@ -17,4 +17,7 @@ module.exports = {
   Post: require('./post.model'),
   Comment: require('./comment.model'),
   Notification: require('./notification.model'),
+  // AI CORE 01 – Skill Intelligence
+  StudentSkill: require('./student-skill.model'),
+  SkillRelationship: require('./skill-relationship.model'),
 };

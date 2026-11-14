@@ -189,3 +189,6 @@ export const adminApi = {
   updateTaxonomy: (id, payload) => client.patch(`/admin/taxonomies/${id}`, payload),
   deleteTaxonomy: (id) => client.delete(`/admin/taxonomies/${id}`),
 };
+
+export { skillIntelligenceApi } from './skill-intelligence';
+

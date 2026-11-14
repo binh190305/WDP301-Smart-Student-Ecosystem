@@ -2,7 +2,7 @@ const Joi = require('joi');
 
 const updateProfileSchema = Joi.object({
   name: Joi.string().min(2).max(100),
-  avatarUrl: Joi.string().uri().allow(''),
+  avatarUrl: Joi.string().uri({ allowRelative: true }).max(2048).allow('', null),
   major: Joi.string().max(120).allow(''),
   gpa: Joi.number().min(0).max(4).allow(null),
   skills: Joi.array().items(Joi.string().max(40)).max(30),
@@ -27,7 +27,7 @@ const adminUpdateUserSchema = Joi.object({
   skills: Joi.array().items(Joi.string().max(40)).max(30),
   interests: Joi.array().items(Joi.string().max(40)).max(30),
   description: Joi.string().max(1000).allow(''),
-  avatarUrl: Joi.string().uri().allow(''),
+  avatarUrl: Joi.string().uri({ allowRelative: true }).max(2048).allow('', null),
 }).min(1);
 
 const pushTokenSchema = Joi.object({

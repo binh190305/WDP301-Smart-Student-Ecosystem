@@ -9,6 +9,33 @@ const STUDENT_PUBLIC_FIELDS = 'name avatarUrl major gpa skills interests descrip
 const updateProfile = async (userId, updates) => {
   const user = await User.findByIdAndUpdate(userId, updates, { new: true, runValidators: true });
   if (!user) throw new AppError('Không tìm thấy người dùng', 404);
+
+  // Sync any newly declared skills into StudentSkill collection for student role
+  if (user.role === 'student' && Array.isArray(updates.skills)) {
+    try {
+      const StudentSkill = require('../models/student-skill.model');
+      for (const rawName of updates.skills) {
+        const skillName = String(rawName).trim();
+        const normalizedName = skillName.toLowerCase().replace(/\s+/g, ' ');
+        if (!normalizedName) continue;
+        const existing = await StudentSkill.findOne({ student: userId, normalizedName });
+        if (!existing) {
+          await StudentSkill.create({
+            student: userId,
+            skillName,
+            normalizedName,
+            proficiency: 'intermediate',
+            proficiencyLevel: 3,
+            status: 'student_declared',
+            assessmentMethod: 'self_reported',
+          });
+        }
+      }
+    } catch {
+      // Soft fail: do not block profile save if skill-sync throws
+    }
+  }
+
   return user.toPublicJSON();
 };
 

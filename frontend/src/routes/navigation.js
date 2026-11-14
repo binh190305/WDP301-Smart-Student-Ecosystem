@@ -29,6 +29,14 @@ export const NAV_BY_ROLE = {
       ],
     },
     {
+      title: 'AI Kỹ năng',
+      items: [
+        { to: '/app/skill-intelligence/profile', label: 'Hồ sơ kỹ năng', icon: 'profile' },
+        { to: '/app/skill-intelligence/analyze', label: 'Phân tích & Khoảng cách', icon: 'sparkles' },
+        { to: '/app/skill-intelligence/graph', label: 'Đồ thị kỹ năng', icon: 'chart' },
+      ],
+    },
+    {
       title: 'Cộng đồng',
       items: [
         { to: '/app/feed', label: 'Bảng tin & Sự kiện', icon: 'feed' },

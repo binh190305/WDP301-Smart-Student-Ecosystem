@@ -39,7 +39,20 @@ const ProfilePage = () => {
       };
       if (isStudent) payload.gpa = form.gpa === '' ? null : Number(form.gpa);
       const res = await userApi.updateProfile(payload);
-      setUser((prev) => ({ ...prev, ...res.data.user }));
+      const updatedUser = res.data?.user || res.data;
+      if (updatedUser) {
+        setUser((prev) => ({ ...prev, ...updatedUser }));
+        setForm((prev) => ({
+          ...prev,
+          name: updatedUser.name ?? prev.name,
+          major: updatedUser.major ?? prev.major,
+          gpa: updatedUser.gpa ?? prev.gpa,
+          description: updatedUser.description ?? prev.description,
+          avatarUrl: updatedUser.avatarUrl ?? prev.avatarUrl,
+          skills: updatedUser.skills ?? prev.skills,
+          interests: updatedUser.interests ?? prev.interests,
+        }));
+      }
       toast.success('Đã cập nhật hồ sơ');
     } catch (err) {
       toast.error(err.message);
