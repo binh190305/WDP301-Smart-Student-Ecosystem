@@ -31,8 +31,6 @@ async function seed() {
   await mongoose.connect(process.env.MONGO_URI);
   console.log(' Connected to MongoDB successfully.\n');
 
-  const hashedPassword = await bcrypt.hash(DEFAULT_PASSWORD, 10);
-
   // ─── 1. LOCATE OR UPSERT THE 3 DEMO ACCOUNTS ───────────────────────────────
   console.log('📌 1. Chuẩn bị 3 tài khoản Demo...');
 
@@ -42,7 +40,7 @@ async function seed() {
     student1 = await User.create({
       name: 'Nguyễn Đại Đức',
       email: 'thuannmhe161234@fpt.edu.vn',
-      password: hashedPassword,
+      password: DEFAULT_PASSWORD,
       role: 'student',
       major: 'Kỹ thuật phần mềm',
       gpa: 3.65,
@@ -55,7 +53,7 @@ async function seed() {
     });
   } else {
     student1.name = 'Nguyễn Đại Đức';
-    student1.password = hashedPassword;
+    student1.password = DEFAULT_PASSWORD;
     student1.gpa = 3.65;
     student1.major = 'Kỹ thuật phần mềm';
     student1.skills = ['React', 'JavaScript', 'Node.js', 'Express', 'MongoDB', 'HTML/CSS', 'TypeScript', 'Git', 'Docker', 'Python', 'SQL', 'Figma'];
@@ -70,7 +68,7 @@ async function seed() {
     student2 = await User.create({
       name: 'Lê Thảo Nguyên',
       email: 'nguyenltse160877@fpt.edu.vn',
-      password: hashedPassword,
+      password: DEFAULT_PASSWORD,
       role: 'student',
       major: 'Trí tuệ nhân tạo',
       gpa: 3.82,
@@ -83,7 +81,7 @@ async function seed() {
     });
   } else {
     student2.name = 'Lê Thảo Nguyên';
-    student2.password = hashedPassword;
+    student2.password = DEFAULT_PASSWORD;
     student2.gpa = 3.82;
     student2.major = 'Trí tuệ nhân tạo';
     student2.skills = ['Python', 'Machine Learning', 'Pandas', 'SQL', 'Deep Learning', 'Scikit-Learn', 'TensorFlow', 'PyTorch', 'Git', 'Data Analysis'];
@@ -98,7 +96,7 @@ async function seed() {
     lecturer = await User.create({
       name: 'ThS. Hoàng Đình Quang',
       email: 'quanghd@fe.edu.vn',
-      password: hashedPassword,
+      password: DEFAULT_PASSWORD,
       role: 'lecturer',
       major: 'Kỹ thuật phần mềm',
       skills: ['React', 'JavaScript', 'Node.js', 'Software Architecture'],
@@ -107,7 +105,7 @@ async function seed() {
     });
   } else {
     lecturer.name = 'ThS. Hoàng Đình Quang';
-    lecturer.password = hashedPassword;
+    lecturer.password = DEFAULT_PASSWORD;
     lecturer.role = 'lecturer';
     lecturer.isActive = true;
     await lecturer.save();
