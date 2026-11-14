@@ -3,6 +3,7 @@
  * Maps normalized skill names to Taxonomy entries (type:'skill' or type:'category').
  * Creates pending taxonomy entries for unknown skills.
  */
+const mongoose = require('mongoose');
 const Taxonomy = require('../models/taxonomy.model');
 const { rolesForSkill } = require('../recommendation/skill-catalog');
 
@@ -54,6 +55,12 @@ const inferCategory = (normalizedName) =>
  * @returns {Promise<{ taxonomy: TaxonomyDoc, created: boolean }>}
  */
 const findOrCreateSkillTaxonomy = async (normalizedName, displayName) => {
+  if (mongoose.connection.readyState !== 1) {
+    return {
+      taxonomy: { _id: null, name: displayName, normalizedName },
+      created: false,
+    };
+  }
   let taxonomy = await Taxonomy.findOne({ type: 'skill', normalizedName }).lean();
   let created = false;
   if (!taxonomy) {

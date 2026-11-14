@@ -13,10 +13,22 @@ const buildStudentProfile = (user) => {
     (user.skillLevels || []).map((s) => [normalizeSkill(s.name), Number(s.level)])
   );
   const skills = new Map();
+  // Ưu tiên nạp từ StudentSkill (AI Core 01) nếu có
+  if (Array.isArray(user.studentSkillDocs)) {
+    for (const s of user.studentSkillDocs) {
+      const name = normalizeSkill(s.normalizedName || s.skillName);
+      if (!name) continue;
+      // Kỹ năng verified và assessed có độ tin cậy thực nghiệm cao
+      skills.set(name, Number(s.proficiencyLevel) || config.defaultSkillLevel);
+    }
+  }
+
   for (const raw of user.skills || []) {
     const name = normalizeSkill(raw);
     if (!name) continue;
-    skills.set(name, explicitLevels.get(name) || config.defaultSkillLevel);
+    if (!skills.has(name)) {
+      skills.set(name, explicitLevels.get(name) || config.defaultSkillLevel);
+    }
   }
 
   const declaredRoles = (user.preferredRoles || []).map(normalizeRole).filter(Boolean);

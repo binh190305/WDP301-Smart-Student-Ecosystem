@@ -64,13 +64,21 @@ const gapAnalysisSchema = Joi.object({
           name: Joi.string().required(),
           minProficiency: Joi.string().valid(...PROFICIENCY_LEVELS).optional(),
           minLevel: Joi.number().integer().min(1).max(5).optional(),
-        })
+          requiredLevel: Joi.string().optional(),
+          requiredProficiencyNumber: Joi.number().optional(),
+          importance: Joi.string().optional(),
+          weight: Joi.number().optional(),
+          requiredCompetencies: Joi.array().items(Joi.string()).optional(),
+          reasoning: Joi.string().allow('').optional(),
+          category: Joi.string().allow('').optional(),
+          source: Joi.string().optional(),
+        }).unknown(true)
       )
     )
     .min(1)
-    .max(30)
+    .max(50)
     .required(),
-  projectDescription: Joi.string().max(2000).optional().allow(''),
+  projectDescription: Joi.string().max(4000).optional().allow(''),
 });
 
 // objectId param

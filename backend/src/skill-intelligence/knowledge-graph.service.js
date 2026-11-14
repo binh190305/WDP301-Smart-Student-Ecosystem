@@ -204,6 +204,11 @@ const getStudentGraph = async (studentId) => {
         proficiency: skill.proficiency,
         proficiencyLevel: skill.proficiencyLevel,
         status: skill.status,
+        classification: skill.classification || 'self_reported',
+        verificationStatus: skill.verificationStatus || 'SELF_REPORTED',
+        proficiencyScore: skill.proficiencyScore || null,
+        evidenceCount: Array.isArray(skill.evidence) ? skill.evidence.length : 0,
+        competenciesCount: Array.isArray(skill.competencies) ? skill.competencies.length : 0,
       });
     }
 
@@ -213,6 +218,7 @@ const getStudentGraph = async (studentId) => {
       type: 'HAS_SKILL',
       proficiency: skill.proficiency,
       proficiencyLevel: skill.proficiencyLevel,
+      classification: skill.classification || 'self_reported',
     });
 
     if (skill.taxonomy?._id) taxonomyIds.push(skill.taxonomy._id);

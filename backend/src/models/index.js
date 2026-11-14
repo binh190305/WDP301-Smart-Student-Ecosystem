@@ -20,4 +20,6 @@ module.exports = {
   // AI CORE 01 – Skill Intelligence
   StudentSkill: require('./student-skill.model'),
   SkillRelationship: require('./skill-relationship.model'),
+  SkillTemplate: require('./skill-template.model'),
+  Taxonomy: require('./taxonomy.model'),
 };

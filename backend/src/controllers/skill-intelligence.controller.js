@@ -1,6 +1,6 @@
 /**
  * SkillIntelligenceController
- * Thin controller layer – delegates to services.
+ * Thin controller layer – delegates to specialized services.
  */
 const asyncHandler = require('../utils/async-handler');
 const AppError = require('../utils/app-error');
@@ -9,6 +9,8 @@ const profileService = require('../skill-intelligence/profile.service');
 const kgService = require('../skill-intelligence/knowledge-graph.service');
 const gapService = require('../skill-intelligence/gap-analysis.service');
 const classificationService = require('../skill-intelligence/classification.service');
+const templateService = require('../skill-intelligence/template.service');
+const unifiedReqService = require('../skill-intelligence/unified-requirement.service');
 const Taxonomy = require('../models/taxonomy.model');
 const Team = require('../models/team.model');
 
@@ -16,18 +18,17 @@ const Team = require('../models/team.model');
 const resolveStudentId = (req) => {
   const { id } = req.params;
   if (!id || id === 'me' || id === req.user.id) return req.user.id;
-  if (req.user.role === 'admin') return id;
+  if (['admin', 'lecturer'].includes(req.user.role)) return id;
   throw new AppError('Bạn không có quyền truy cập hồ sơ của sinh viên khác', 403);
 };
 
-// ─── SI-01: Skill Extraction ──────────────────────────────────────────────────
+// ─── SI-01: Skill Extraction & Unified Requirements ───────────────────────────
 const extractSkills = asyncHandler(async (req, res) => {
   const { text, evidenceType, saveToProfile } = req.body;
   const studentId = req.user.id;
 
   const result = await extractionService.extractSkills(text, evidenceType, studentId);
 
-  // Optionally save AI suggestions to profile in one step
   if (saveToProfile && result.skills.length > 0) {
     await profileService.upsertAISuggestions(studentId, result.skills);
   }
@@ -46,22 +47,58 @@ const extractSkills = asyncHandler(async (req, res) => {
   });
 });
 
-// ─── SI-03: Skill Profile ─────────────────────────────────────────────────────
+const buildProjectRequirements = asyncHandler(async (req, res) => {
+  const result = await unifiedReqService.buildProjectRequirements(req.body);
+  res.status(200).json({ success: true, data: result });
+});
+
+// ─── Project Templates ────────────────────────────────────────────────────────
+const getTemplates = asyncHandler(async (req, res) => {
+  const templates = await templateService.getTemplates();
+  res.status(200).json({ success: true, data: templates });
+});
+
+const getTemplateByIdOrCode = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const template = await templateService.getTemplateByIdOrCode(id);
+  if (!template) throw new AppError('Không tìm thấy dự án mẫu', 404);
+  res.status(200).json({ success: true, data: template });
+});
+
+// ─── SI-03: Evidence-Based Skill Profile ──────────────────────────────────────
 const getMyProfile = asyncHandler(async (req, res) => {
   const studentId = req.user.id;
-  const skills = await profileService.getProfile(studentId, req.query);
-  res.status(200).json({ success: true, data: skills });
+  const data = await profileService.getProfile(studentId, req.query);
+  res.status(200).json({ success: true, data });
+});
+
+const getProfileMetrics = asyncHandler(async (req, res) => {
+  const studentId = req.user.id;
+  const metrics = await profileService.getProfileMetrics(studentId);
+  res.status(200).json({ success: true, data: metrics });
 });
 
 const getStudentProfile = asyncHandler(async (req, res) => {
   const studentId = resolveStudentId(req);
-  const skills = await profileService.getProfile(studentId, req.query);
-  res.status(200).json({ success: true, data: skills });
+  const data = await profileService.getProfile(studentId, req.query);
+  res.status(200).json({ success: true, data });
 });
 
 const addSkill = asyncHandler(async (req, res) => {
   const skill = await profileService.addManualSkill(req.user.id, req.body);
   res.status(201).json({ success: true, data: skill });
+});
+
+const submitEvidence = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const skill = await profileService.submitEvidence(req.user.id, id, req.body);
+  res.status(200).json({ success: true, data: skill });
+});
+
+const reviewEvidence = asyncHandler(async (req, res) => {
+  const { id, evidenceId } = req.params;
+  const skill = await profileService.reviewEvidence(req.user, id, evidenceId, req.body);
+  res.status(200).json({ success: true, data: skill });
 });
 
 const updateSkill = asyncHandler(async (req, res) => {
@@ -93,9 +130,8 @@ const getPendingReview = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: skills });
 });
 
-// Save AI suggestions to profile (batch)
 const saveSuggestions = asyncHandler(async (req, res) => {
-  const { skills, batchId } = req.body;
+  const { skills } = req.body;
   if (!Array.isArray(skills) || skills.length === 0) {
     throw new AppError('Danh sách kỹ năng không hợp lệ', 422);
   }
@@ -135,7 +171,7 @@ const getPrerequisites = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: prereqs });
 });
 
-// ─── SI-05: Skill Gap Analysis ────────────────────────────────────────────────
+// ─── SI-05: Unified Skill Gap Analysis ────────────────────────────────────────
 const analyzeGap = asyncHandler(async (req, res) => {
   const studentId = req.user.id;
   const result = await gapService.analyzeGap(studentId, req.body);
@@ -149,10 +185,19 @@ const analyzeGapVsTeam = asyncHandler(async (req, res) => {
   const team = await Team.findById(teamId).lean();
   if (!team) throw new AppError('Không tìm thấy nhóm', 404);
 
-  // Build target from team requirements
   const targetSkills = [
-    ...(team.skillRequirements || []).map((r) => ({ name: r.name, minLevel: r.minLevel })),
-    ...(team.skillsNeeded || []).map((s) => ({ name: s, minLevel: 3 })),
+    ...(team.skillRequirements || []).map((r) => ({
+      name: r.name,
+      minLevel: r.minLevel,
+      importance: 'high',
+      weight: 1.5,
+    })),
+    ...(team.skillsNeeded || []).map((s) => ({
+      name: s,
+      minLevel: 3,
+      importance: 'medium',
+      weight: 1.0,
+    })),
   ];
 
   const result = await gapService.analyzeGap(studentId, {
@@ -160,14 +205,23 @@ const analyzeGapVsTeam = asyncHandler(async (req, res) => {
     projectDescription: `${team.topic || ''} ${team.description || ''}`.trim(),
   });
 
-  res.status(200).json({ success: true, data: { team: { _id: team._id, name: team.name, topic: team.topic }, ...result } });
+  res.status(200).json({
+    success: true,
+    data: { team: { _id: team._id, name: team.name, topic: team.topic }, ...result },
+  });
 });
 
 module.exports = {
   extractSkills,
+  buildProjectRequirements,
+  getTemplates,
+  getTemplateByIdOrCode,
   getMyProfile,
+  getProfileMetrics,
   getStudentProfile,
   addSkill,
+  submitEvidence,
+  reviewEvidence,
   updateSkill,
   confirmSkill,
   rejectSkill,
@@ -182,4 +236,3 @@ module.exports = {
   analyzeGap,
   analyzeGapVsTeam,
 };
-

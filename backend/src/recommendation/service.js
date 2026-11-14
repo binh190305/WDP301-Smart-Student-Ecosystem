@@ -3,7 +3,7 @@
 const mongoose = require('mongoose');
 const config = require('./config');
 const AppError = require('../utils/app-error');
-const { User, Team, JoinRequest, Enrollment } = require('../models');
+const { User, Team, JoinRequest, Enrollment, StudentSkill } = require('../models');
 const TeamInvitation = require('../models/team-invitation.model');
 const Taxonomy = require('../models/taxonomy.model');
 const RecommendationEvent = require('../models/recommendation-event.model');
@@ -65,7 +65,7 @@ const loadStudentContext = async (studentId) => {
   const user = await User.findOne({ _id: studentId, role: 'student' }).lean();
   if (!user) throw new AppError('Không tìm thấy sinh viên', 404);
 
-  const [teamDocs, rejectedRequests, rejectedInvites, pendingRequests, courseIds] = await Promise.all([
+  const [teamDocs, rejectedRequests, rejectedInvites, pendingRequests, courseIds, studentSkills] = await Promise.all([
     Team.find({ status: 'recruiting' })
       .populate('members.user', MEMBER_FIELDS)
       .populate('leader', 'name avatarUrl')
@@ -74,7 +74,10 @@ const loadStudentContext = async (studentId) => {
     TeamInvitation.distinct('team', { invitee: user._id, status: 'rejected' }),
     JoinRequest.distinct('team', { applicant: user._id, status: 'pending' }),
     Enrollment.distinct('course', { student: user._id }),
+    StudentSkill.find({ student: user._id, isActive: true }).lean(),
   ]);
+
+  user.studentSkillDocs = studentSkills || [];
 
   const docs = teamDocs.filter((t) => t.members.every((m) => m.user)); // bỏ thành viên đã bị xoá
   const teamProfiles = docs.map((doc) => buildTeamProfile(doc, doc.members.map((m) => buildStudentProfile(m.user))));
