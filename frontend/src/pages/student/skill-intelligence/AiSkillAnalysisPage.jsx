@@ -45,6 +45,16 @@ export default function AiSkillAnalysisPage() {
   const [newReqLevel, setNewReqLevel] = useState('intermediate');
   const [newReqImportance, setNewReqImportance] = useState('medium');
 
+  // Interactive quiz practice answers state: { [`${skillName}_${qIdx}`]: optIdx }
+  const [selectedQuizAnswers, setSelectedQuizAnswers] = useState({});
+
+  const handleSelectQuizAnswer = (skillName, qIdx, optIdx) => {
+    setSelectedQuizAnswers((prev) => ({
+      ...prev,
+      [`${skillName}_${qIdx}`]: optIdx,
+    }));
+  };
+
   // Load Database-backed templates on mount
   const loadTemplates = async () => {
     try {
@@ -610,6 +620,122 @@ export default function AiSkillAnalysisPage() {
             </div>
           )}
 
+          {/* SECTION: STRENGTHS & WEAKNESSES PROFILING */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Strengths Card */}
+            <div className="bg-gradient-to-br from-emerald-50/80 via-white to-emerald-50/30 p-6 rounded-2xl border border-emerald-200 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-emerald-100 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white font-bold text-base shadow-xs">
+                    💪
+                  </span>
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-base">Điểm Mạnh Cốt Lõi (Key Strengths)</h3>
+                    <p className="text-[11px] text-gray-500">Các năng lực đã được kiểm chứng thực tế và đáp ứng chuẩn đề tài</p>
+                  </div>
+                </div>
+                <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">
+                  {gapResult.strengths?.length || gapResult.matched?.length || 0} Thế mạnh
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {(!gapResult.strengths || gapResult.strengths.length === 0) && (!gapResult.matched || gapResult.matched.length === 0) ? (
+                  <p className="text-xs text-gray-400 italic py-4 text-center">Chưa ghi nhận thế mạnh đủ điều kiện cho dự án này.</p>
+                ) : (
+                  (gapResult.strengths || gapResult.matched).map((str, idx) => (
+                    <div key={idx} className="p-3.5 bg-white rounded-xl border border-emerald-100 shadow-2xs space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-gray-900 text-sm">{str.skillName}</span>
+                          <span className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
+                            {str.studentLabel}
+                          </span>
+                        </div>
+                        <span className="text-[11px] font-semibold text-purple-700 flex items-center gap-1">
+                          {str.classification === 'verified' ? '🛡️ Đã xác thực' : '✅ Đã kiểm tra'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600 leading-relaxed">
+                        {str.summary || `Đã chứng minh năng lực đạt cấp độ ${str.studentLabel}, đáp ứng xuất sắc yêu cầu dự án.`}
+                      </p>
+                      {str.demonstratedCompetencies?.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {str.demonstratedCompetencies.map((c, i) => (
+                            <span key={i} className="text-[10px] px-2 py-0.5 rounded-md bg-gray-100 text-gray-700">
+                              ✓ {c}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Weaknesses & Gaps Card */}
+            <div className="bg-gradient-to-br from-rose-50/80 via-white to-amber-50/30 p-6 rounded-2xl border border-rose-200 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-rose-100 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-600 text-white font-bold text-base shadow-xs">
+                    ⚠️
+                  </span>
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-base">Điểm Yếu & Khoảng Cách Cần Khắc Phục</h3>
+                    <p className="text-[11px] text-gray-500">Các kỹ năng thiếu hụt có nguy cơ gây rủi ro tiến độ dự án</p>
+                  </div>
+                </div>
+                <span className="text-xs px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 font-bold border border-rose-200">
+                  {gapResult.weaknesses?.length || ((gapResult.partial?.length || 0) + (gapResult.missing?.length || 0)) || 0} Khoảng cách
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {(!gapResult.weaknesses || gapResult.weaknesses.length === 0) && (!gapResult.partial?.length && !gapResult.missing?.length) ? (
+                  <p className="text-xs text-gray-400 italic py-4 text-center">Tuyệt vời! Không phát hiện điểm yếu nào cho đề tài này.</p>
+                ) : (
+                  (gapResult.weaknesses || [
+                    ...(gapResult.partial || []).map((p) => ({ ...p, summary: `Cần nâng cấp thêm ${p.gap} cấp`, risk: 'Cần nâng cấp' })),
+                    ...(gapResult.missing || []).map((m) => ({ ...m, summary: 'Hồ sơ chưa có kỹ năng này', risk: 'Thiếu hoàn toàn' })),
+                  ]).map((w, idx) => (
+                    <div key={idx} className="p-3.5 bg-white rounded-xl border border-rose-100 shadow-2xs space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-gray-900 text-sm">{w.skillName}</span>
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                              w.severity === 'critical'
+                                ? 'bg-rose-600 text-white'
+                                : w.severity === 'high'
+                                ? 'bg-rose-100 text-rose-800'
+                                : 'bg-amber-100 text-amber-800'
+                            }`}
+                          >
+                            {w.risk || (w.gap ? `Thiếu ${w.gap} cấp` : 'Cần bổ sung')}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-gray-500 font-medium">
+                          {w.studentLevel ? `${w.studentLabel} ➔ ${w.requiredLabel}` : `Cần: ${w.requiredLabel}`}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600 leading-relaxed">{w.summary}</p>
+                      {w.missingCompetencies?.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {w.missingCompetencies.map((c, i) => (
+                            <span key={i} className="text-[10px] px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-100">
+                              ✕ Thiếu: {c}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Matched, Partial, Missing Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Matched */}
@@ -700,80 +826,234 @@ export default function AiSkillAnalysisPage() {
             </div>
           </div>
 
-          {/* SECTION 4: LEARNING ROADMAP & REAL DATABASE REMEDIATION */}
+          {/* SECTION 4: LEARNING ROADMAP & 4 PILLARS REMEDIATION */}
           {gapResult.learningRoadmap?.length > 0 && (
-            <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                <span>🗺️</span> Lộ trình Học tập & Nguồn lực Đề xuất từ Hệ thống (Learning Roadmap)
-              </h3>
-              <p className="text-xs text-gray-500">
-                Các học phần, tài liệu và bài Quiz được tự động truy xuất trực tiếp từ cơ sở dữ liệu AACS tương ứng với các kỹ năng còn thiếu.
-              </p>
+            <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-6">
+              <div className="border-b border-gray-100 pb-4">
+                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <span>🗺️</span> Lộ trình Cải thiện Năng lực & Tài nguyên Học tập (4 Trụ Cột)
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  Được hệ thống tổng hợp trực tiếp từ: Học phần chuẩn FPT University • Giáo trình slide STE • Video bài giảng thực chiến YouTube • Bộ câu hỏi trắc nghiệm tương tác giúp bù đắp kỹ năng còn thiếu.
+                </p>
+              </div>
 
-              <div className="space-y-4 pt-2">
+              <div className="space-y-6">
                 {gapResult.learningRoadmap.map((item) => (
-                  <div key={item.step} className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-3 text-xs">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-xs">
+                  <div
+                    key={item.step}
+                    className="p-5 rounded-2xl border border-gray-200 bg-gradient-to-b from-gray-50/70 to-white shadow-xs space-y-4"
+                  >
+                    {/* Header item */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-3">
+                      <div className="flex items-center gap-3">
+                        <span className="w-8 h-8 rounded-xl bg-indigo-600 text-white font-bold flex items-center justify-center text-sm shadow-xs">
                           {item.step}
                         </span>
-                        <span className="font-bold text-gray-900 text-sm">Nâng cao kỹ năng: {item.skillName}</span>
+                        <div>
+                          <div className="font-bold text-gray-900 text-base flex items-center gap-2">
+                            <span>Nâng cao kỹ năng: {item.skillName}</span>
+                          </div>
+                          <span className="text-[11px] text-gray-500">
+                            {item.gap ? `Khoảng cách cần cải thiện: ${item.gap} cấp độ` : 'Kỹ năng khuyến nghị bổ sung'}
+                          </span>
+                        </div>
                       </div>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">
+                      <span className="text-xs px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-bold self-start sm:self-auto border border-indigo-200">
                         Ưu tiên #{item.step}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
-                      {/* Recommended Courses */}
-                      <div className="bg-white p-3 rounded-lg border border-gray-200 space-y-1">
-                        <span className="font-semibold text-gray-800 flex items-center gap-1">
-                          <span>📚</span> Khóa học liên quan:
-                        </span>
-                        {item.recommendedCourses?.length === 0 ? (
-                          <p className="text-gray-400 italic text-[11px]">Chưa có khóa học gán trực tiếp.</p>
-                        ) : (
-                          item.recommendedCourses.map((c, i) => (
-                            <div key={i} className="text-[11px] text-indigo-600 font-medium truncate">
-                              • {c.name || c.title || c.code}
+                    {/* 4 Pillars Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {/* PILLAR 1: FPT Course */}
+                      <div className="bg-white p-4 rounded-xl border border-blue-100 shadow-2xs space-y-2 flex flex-col justify-between">
+                        <div className="space-y-1.5">
+                          <span className="text-xs font-bold text-blue-900 flex items-center gap-1.5 uppercase tracking-wider">
+                            <span>📚</span> 1. Học phần FPT
+                          </span>
+                          {item.recommendedCourses?.length === 0 ? (
+                            <p className="text-gray-400 italic text-xs">Chưa có học phần gán.</p>
+                          ) : (
+                            item.recommendedCourses.map((c, i) => (
+                              <div key={i} className="space-y-1">
+                                <div className="text-xs font-bold text-blue-700">
+                                  {c.code ? `[${c.code}] ` : ''}{c.title || c.name}
+                                </div>
+                                <p className="text-[11px] text-gray-500 line-clamp-2">
+                                  {c.description || 'Học phần rèn luyện năng lực thực tế.'}
+                                </p>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                        <div className="pt-2">
+                          <span className="text-[10px] text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded">
+                            Chương trình chính khóa
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* PILLAR 2: Curated Materials */}
+                      <div className="bg-white p-4 rounded-xl border border-amber-100 shadow-2xs space-y-2 flex flex-col justify-between">
+                        <div className="space-y-1.5">
+                          <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5 uppercase tracking-wider">
+                            <span>📄</span> 2. Giáo trình & Slide
+                          </span>
+                          {item.recommendedMaterials?.length === 0 ? (
+                            <p className="text-gray-400 italic text-xs">Tài liệu đang cập nhật.</p>
+                          ) : (
+                            item.recommendedMaterials.slice(0, 2).map((m, i) => (
+                              <div key={i} className="space-y-0.5">
+                                <div className="text-xs font-medium text-gray-800 line-clamp-2">
+                                  • {m.title}
+                                </div>
+                                {m.desc && <p className="text-[10px] text-gray-500 line-clamp-1">{m.desc}</p>}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                        <div className="pt-2">
+                          <span className="text-[10px] text-amber-700 font-medium bg-amber-50 px-2 py-0.5 rounded">
+                            Tài liệu STE lưu trữ
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* PILLAR 3: YouTube Video Lecture */}
+                      <div className="bg-white p-4 rounded-xl border border-rose-100 shadow-2xs space-y-2 flex flex-col justify-between">
+                        <div className="space-y-1.5">
+                          <span className="text-xs font-bold text-rose-900 flex items-center gap-1.5 uppercase tracking-wider">
+                            <span className="text-rose-600 font-black">▶</span> 3. Video Bài Giảng
+                          </span>
+                          {item.youtube ? (
+                            <div className="space-y-1">
+                              <div className="text-xs font-bold text-gray-900 line-clamp-2">
+                                {item.youtube.title}
+                              </div>
+                              <div className="flex items-center gap-2 text-[11px] text-gray-500">
+                                <span className="font-semibold text-rose-700">{item.youtube.channel}</span>
+                                {item.youtube.duration && <span>• {item.youtube.duration}</span>}
+                              </div>
                             </div>
-                          ))
+                          ) : (
+                            <p className="text-gray-400 italic text-xs">Đang cập nhật video.</p>
+                          )}
+                        </div>
+                        {item.youtube?.url && (
+                          <div className="pt-2">
+                            <a
+                              href={item.youtube.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold shadow-2xs transition"
+                            >
+                              <span>▶</span> Xem trên YouTube
+                            </a>
+                          </div>
                         )}
                       </div>
 
-                      {/* Recommended Materials */}
-                      <div className="bg-white p-3 rounded-lg border border-gray-200 space-y-1">
-                        <span className="font-semibold text-gray-800 flex items-center gap-1">
-                          <span>📄</span> Tài liệu ôn tập:
-                        </span>
-                        {item.recommendedMaterials?.length === 0 ? (
-                          <p className="text-gray-400 italic text-[11px]">Tài liệu đang cập nhật.</p>
-                        ) : (
-                          item.recommendedMaterials.map((m, i) => (
-                            <div key={i} className="text-[11px] text-gray-700 truncate">
-                              • {m.title}
-                            </div>
-                          ))
-                        )}
-                      </div>
-
-                      {/* Recommended Quizzes */}
-                      <div className="bg-white p-3 rounded-lg border border-gray-200 space-y-1">
-                        <span className="font-semibold text-gray-800 flex items-center gap-1">
-                          <span>📝</span> Quiz kiểm tra năng lực:
-                        </span>
-                        {item.recommendedQuizzes?.length === 0 ? (
-                          <p className="text-gray-400 italic text-[11px]">Chưa có bài quiz tương ứng.</p>
-                        ) : (
-                          item.recommendedQuizzes.map((q, i) => (
-                            <div key={i} className="text-[11px] text-emerald-700 font-semibold truncate">
-                              • {q.title}
-                            </div>
-                          ))
-                        )}
+                      {/* PILLAR 4: Practice Quiz */}
+                      <div className="bg-white p-4 rounded-xl border border-emerald-100 shadow-2xs space-y-2 flex flex-col justify-between">
+                        <div className="space-y-1.5">
+                          <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5 uppercase tracking-wider">
+                            <span>📝</span> 4. Bài Quiz Kiểm tra
+                          </span>
+                          {item.recommendedQuizzes?.length === 0 ? (
+                            <p className="text-gray-400 italic text-xs">Chưa có bài quiz tương ứng.</p>
+                          ) : (
+                            item.recommendedQuizzes.map((q, i) => (
+                              <div key={i} className="space-y-1">
+                                <div className="text-xs font-bold text-emerald-800 line-clamp-2">
+                                  {q.title}
+                                </div>
+                                <div className="text-[10px] text-gray-500">
+                                  {q.questionCount || 4} câu hỏi trắc nghiệm
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                        <div className="pt-2">
+                          <Link
+                            to="/quizzes"
+                            className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-2xs transition"
+                          >
+                            <span>✍️</span> Làm bài Quiz ngay
+                          </Link>
+                        </div>
                       </div>
                     </div>
+
+                    {/* Interactive Practice Questions (Luyện tập tại chỗ) */}
+                    {item.practiceQuestions?.length > 0 && (
+                      <div className="bg-indigo-50/40 p-4 rounded-xl border border-indigo-100 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-indigo-900 flex items-center gap-1.5 uppercase tracking-wider">
+                            <span>💡</span> Câu hỏi Ôn tập Thực tế (Tương tác nhanh tại chỗ):
+                          </span>
+                          <span className="text-[10px] text-indigo-600 font-medium">Click đáp án để kiểm tra kết quả</span>
+                        </div>
+
+                        {item.practiceQuestions.map((pq, qIdx) => {
+                          const stateKey = `${item.skillName}_${qIdx}`;
+                          const selectedOpt = selectedQuizAnswers[stateKey];
+                          const hasAnswered = selectedOpt !== undefined;
+                          const isCorrect = selectedOpt === pq.answer;
+
+                          return (
+                            <div key={qIdx} className="bg-white p-3.5 rounded-xl border border-gray-200 space-y-2.5">
+                              <p className="text-xs font-semibold text-gray-900 leading-relaxed">
+                                {qIdx + 1}. {pq.question}
+                              </p>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {pq.options.map((opt, optIdx) => {
+                                  let btnClass = 'border-gray-200 hover:border-gray-300 bg-gray-50/50 text-gray-700';
+                                  if (hasAnswered) {
+                                    if (optIdx === pq.answer) {
+                                      btnClass = 'border-emerald-500 bg-emerald-50 text-emerald-800 font-bold ring-1 ring-emerald-400';
+                                    } else if (optIdx === selectedOpt) {
+                                      btnClass = 'border-rose-500 bg-rose-50 text-rose-800 font-bold';
+                                    } else {
+                                      btnClass = 'border-gray-100 bg-gray-50 text-gray-400 opacity-60';
+                                    }
+                                  }
+
+                                  return (
+                                    <button
+                                      key={optIdx}
+                                      type="button"
+                                      disabled={hasAnswered}
+                                      onClick={() => handleSelectQuizAnswer(item.skillName, qIdx, optIdx)}
+                                      className={`px-3 py-2 rounded-lg border text-left text-xs transition flex items-center justify-between ${btnClass}`}
+                                    >
+                                      <span>{String.fromCharCode(65 + optIdx)}. {opt}</span>
+                                      {hasAnswered && optIdx === pq.answer && <span>✅</span>}
+                                      {hasAnswered && optIdx === selectedOpt && optIdx !== pq.answer && <span>❌</span>}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              {hasAnswered && (
+                                <div
+                                  className={`p-2.5 rounded-lg text-[11px] leading-relaxed border ${
+                                    isCorrect
+                                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                      : 'bg-rose-50 text-rose-800 border-rose-200'
+                                  }`}
+                                >
+                                  <strong>{isCorrect ? '🎉 Chính xác! ' : '💡 Giải thích: '}</strong>
+                                  {pq.explanation}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

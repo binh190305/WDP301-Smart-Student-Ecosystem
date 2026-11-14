@@ -277,6 +277,54 @@ const analyzeGap = async (studentId, { targetSkills = [], projectDescription = '
     };
   });
 
+  // 1. Executive Strengths Analysis (Điểm mạnh)
+  const strengths = matched.map((m) => {
+    return {
+      skillName: m.skillName,
+      studentLevel: m.studentLevel,
+      studentLabel: m.studentLabel,
+      classification: m.classification,
+      evidenceType: m.evidenceType,
+      demonstratedCompetencies: m.demonstratedCompetencies || [],
+      summary:
+        m.classification === 'verified'
+          ? `Năng lực đã được Giảng viên / Thẩm định viên xác thực chính thức ở cấp độ ${m.studentLabel}. Đảm bảo chất lượng cao nhất cho dự án.`
+          : m.classification === 'assessed'
+          ? `Năng lực đã được kiểm chứng thực tế qua bài Quiz hoặc Bài tập có chấm điểm. Đạt chuẩn yêu cầu của dự án.`
+          : `Kỹ năng tự khai báo đạt cấp độ yêu cầu. Khuyến nghị bổ sung bằng chứng để tăng độ tin cậy.`,
+    };
+  });
+
+  // 2. Executive Weaknesses / Gaps Analysis (Điểm yếu & Rủi ro)
+  const weaknesses = [
+    ...partial.map((p) => ({
+      skillName: p.skillName,
+      type: 'gap',
+      severity: p.importance === 'high' ? 'high' : 'medium',
+      studentLevel: p.studentLevel,
+      studentLabel: p.studentLabel,
+      requiredLevel: p.requiredLevel,
+      requiredLabel: p.requiredLabel,
+      gap: p.gap,
+      summary: `Hiện tại đạt ${p.studentLabel}, nhưng dự án yêu cầu ${p.requiredLabel} (thiếu ${p.gap} cấp). Cần làm thêm bài thực hành để nâng cấp.`,
+      missingCompetencies: (p.requiredCompetencies || []).slice(0, 3),
+      risk: p.importance === 'high' ? 'Rủi ro cao: Kỹ năng trọng tâm của dự án' : 'Rủi ro trung bình',
+    })),
+    ...missing.map((m) => ({
+      skillName: m.skillName,
+      type: 'missing',
+      severity: m.importance === 'high' ? 'critical' : m.importance === 'medium' ? 'high' : 'low',
+      studentLevel: 0,
+      studentLabel: 'Chưa có',
+      requiredLevel: m.requiredLevel,
+      requiredLabel: m.requiredLabel,
+      gap: m.gap,
+      summary: `Hồ sơ chưa có kỹ năng này. Cần học mới hoàn toàn theo lộ trình trước khi nhận đề tài.`,
+      missingCompetencies: (m.requiredCompetencies || []).slice(0, 3),
+      risk: m.importance === 'high' ? 'Rủi ro nghiêm trọng: Kỹ năng bắt buộc của dự án' : 'Rủi ro cần bổ sung',
+    })),
+  ].sort((a, b) => (b.severity === 'critical' ? 2 : b.severity === 'high' ? 1 : 0) - (a.severity === 'critical' ? 2 : a.severity === 'high' ? 1 : 0));
+
   return {
     readinessScore,
     dataCoverage,
@@ -284,6 +332,8 @@ const analyzeGap = async (studentId, { targetSkills = [], projectDescription = '
     matchedCount: matched.length,
     partialCount: partial.length,
     missingCount: missing.length,
+    strengths,
+    weaknesses,
     matched,
     partial,
     missing,

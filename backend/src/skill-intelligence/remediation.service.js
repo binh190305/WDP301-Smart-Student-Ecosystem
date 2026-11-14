@@ -187,10 +187,11 @@ const REMEDIATION_KNOWLEDGE_BASE = {
     ],
   },
   docker: {
-    courseCode: 'IAO202',
-    courseFallback: { code: 'IAO202', title: 'Nhập môn An toàn thông tin & Hạ tầng' },
+    courseCode: 'SWP391',
+    courseFallback: { code: 'SWP391', title: 'Đồ án Ứng dụng Thực tế & Triển khai Cloud' },
     materials: [
-      { title: 'Cẩm nang Containerization với Docker & Docker-Compose', desc: 'Tạo Dockerfile đa tầng, tối ưu image size và quản lý mạng container' },
+      { title: '[SWP391] Cẩm nang Containerization với Docker & Docker-Compose', desc: 'Tạo Dockerfile đa tầng, tối ưu image size, networking và cấu hình biến môi trường production' },
+      { title: '[SWP391] Slide Bài giảng: Kiến trúc Microservices và Đóng gói Container', desc: 'Quy chuẩn đóng gói ứng dụng Node.js & React thành container độc lập' },
     ],
     youtube: {
       title: 'Docker & Docker-Compose Toàn Tập Cho Lập Trình Viên',
@@ -206,6 +207,258 @@ const REMEDIATION_KNOWLEDGE_BASE = {
         options: ['RUN', 'CMD', 'ENV', 'EXPOSE'],
         answer: 1,
         explanation: 'CMD (hoặc ENTRYPOINT) quy định tiến trình chính sẽ chạy khi container start.',
+      },
+    ],
+  },
+  'tailwind css': {
+    courseCode: 'FER202',
+    courseFallback: { code: 'FER202', title: 'Lập trình Web Frontend với React' },
+    materials: [
+      { title: '[FER202] Cẩm nang Thiết kế Giao diện Hiện đại với Tailwind CSS Utility Classes', desc: 'Responsive Design, Grid/Flexbox, Dark Mode, Typography và tối ưu hóa CSS bundle' },
+      { title: '[FER202] Bộ Component UI mẫu viết bằng Tailwind CSS & React Icons', desc: 'Card, Modal, Navbar, Form Controls và Animation mượt mà' },
+    ],
+    youtube: {
+      title: 'Học Tailwind CSS Cơ Bản Đến Nâng Cao Siêu Tốc',
+      channel: 'F8 Official',
+      url: 'https://www.youtube.com/watch?v=dFgzHOX84xQ',
+      videoId: 'dFgzHOX84xQ',
+      duration: '2 giờ 15 phút • Thiết kế Responsive',
+    },
+    quizTitle: 'Trắc nghiệm Tailwind CSS Utility-First & Responsive Layout',
+    practiceQuestions: [
+      {
+        question: 'Để căn giữa một phần tử theo cả hai trục bằng Flexbox trong Tailwind CSS, tổ hợp class nào đúng?',
+        options: ['flex items-center justify-center', 'flex center-all', 'display-flex align-center', 'box-center'],
+        answer: 0,
+        explanation: 'items-center căn giữa trục phụ (cross-axis), justify-center căn giữa trục chính (main-axis).',
+      },
+      {
+        question: 'Prefix nào trong Tailwind CSS đại diện cho breakpoint màn hình tablet từ 768px trở lên?',
+        options: ['sm:', 'md:', 'lg:', 'xl:'],
+        answer: 1,
+        explanation: 'md: tương ứng với min-width 768px trong Tailwind CSS responsive breakpoints.',
+      },
+    ],
+  },
+  tailwind: {
+    courseCode: 'FER202',
+    courseFallback: { code: 'FER202', title: 'Lập trình Web Frontend với React' },
+    materials: [
+      { title: '[FER202] Cẩm nang Thiết kế Giao diện Hiện đại với Tailwind CSS Utility Classes', desc: 'Responsive Design, Grid/Flexbox, Dark Mode, Typography và tối ưu hóa CSS bundle' },
+    ],
+    youtube: {
+      title: 'Học Tailwind CSS Cơ Bản Đến Nâng Cao Siêu Tốc',
+      channel: 'F8 Official',
+      url: 'https://www.youtube.com/watch?v=dFgzHOX84xQ',
+      videoId: 'dFgzHOX84xQ',
+      duration: '2 giờ 15 phút • Thiết kế Responsive',
+    },
+    quizTitle: 'Trắc nghiệm Tailwind CSS Utility-First & Responsive Layout',
+    practiceQuestions: [
+      {
+        question: 'Để căn giữa một phần tử theo cả hai trục bằng Flexbox trong Tailwind CSS, tổ hợp class nào đúng?',
+        options: ['flex items-center justify-center', 'flex center-all', 'display-flex align-center', 'box-center'],
+        answer: 0,
+        explanation: 'items-center căn giữa trục phụ, justify-center căn giữa trục chính.',
+      },
+    ],
+  },
+  redux: {
+    courseCode: 'FER202',
+    courseFallback: { code: 'FER202', title: 'Lập trình Web Frontend Nâng cao' },
+    materials: [
+      { title: '[FER202] Quản lý Trạng thái Ứng dụng Toàn cục với Redux Toolkit & RTK Query', desc: 'createSlice, configureStore, createAsyncThunk và luồng dữ liệu 1 chiều (unidirectional data flow)' },
+      { title: '[FER202] Slide: So sánh Context API vs Redux Toolkit trong Ứng dụng Lớn', desc: 'Khi nào nên dùng Context API và khi nào cần Redux Toolkit để tránh re-render' },
+    ],
+    youtube: {
+      title: 'Redux Toolkit Siêu Dễ Hiểu & Thực Chiến Với React',
+      channel: 'Hỏi Dân IT',
+      url: 'https://www.youtube.com/watch?v=kAO_V2lZuhA',
+      videoId: 'kAO_V2lZuhA',
+      duration: '1 giờ 45 phút • Redux Toolkit',
+    },
+    quizTitle: 'Kiểm tra Kiến thức Redux Toolkit State Management',
+    practiceQuestions: [
+      {
+        question: 'Hàm nào trong Redux Toolkit tự động tạo cả action creators và action types dựa trên các reducers khai báo?',
+        options: ['createAction', 'createSlice', 'combineReducers', 'createStore'],
+        answer: 1,
+        explanation: 'createSlice nhận name và reducers map rồi tự động sinh ra actions tương ứng.',
+      },
+      {
+        question: 'Trong Redux Toolkit, cơ chế nào cho phép ta viết code thay đổi state như thể đang mutate trực tiếp?',
+        options: ['Immer library tích hợp sẵn', 'Virtual DOM', 'Proxy thuần', 'Deep clone thủ công'],
+        answer: 0,
+        explanation: 'Redux Toolkit tích hợp sẵn thư viện Immer, cho phép viết mutating syntax nhưng vẫn sinh ra immutable updates an toàn.',
+      },
+    ],
+  },
+  'redux toolkit': {
+    courseCode: 'FER202',
+    courseFallback: { code: 'FER202', title: 'Lập trình Web Frontend Nâng cao' },
+    materials: [
+      { title: '[FER202] Quản lý Trạng thái Ứng dụng Toàn cục với Redux Toolkit & RTK Query', desc: 'createSlice, configureStore, createAsyncThunk và luồng dữ liệu 1 chiều' },
+    ],
+    youtube: {
+      title: 'Redux Toolkit Siêu Dễ Hiểu & Thực Chiến Với React',
+      channel: 'Hỏi Dân IT',
+      url: 'https://www.youtube.com/watch?v=kAO_V2lZuhA',
+      videoId: 'kAO_V2lZuhA',
+      duration: '1 giờ 45 phút • Redux Toolkit',
+    },
+    quizTitle: 'Kiểm tra Kiến thức Redux Toolkit State Management',
+    practiceQuestions: [
+      {
+        question: 'Hàm nào trong Redux Toolkit tự động tạo cả action creators và action types?',
+        options: ['createAction', 'createSlice', 'combineReducers', 'createStore'],
+        answer: 1,
+        explanation: 'createSlice nhận name và reducers map rồi tự động sinh ra actions tương ứng.',
+      },
+    ],
+  },
+  'rest api': {
+    courseCode: 'PRJ301',
+    courseFallback: { code: 'PRJ301', title: 'Lập trình Web & Dịch vụ Backend' },
+    materials: [
+      { title: '[PRJ301] Hướng dẫn Thiết kế RESTful API Chuẩn Công nghiệp & Mã Trạng thái HTTP', desc: 'Thiết kế Resource URI, HTTP methods (GET/POST/PUT/PATCH/DELETE), Status codes và bảo mật Token' },
+      { title: '[PRJ301] Slide: Xử lý Pagination, Filtering, Sorting và Error Response chuẩn', desc: 'Cấu trúc phản hồi JSON chuẩn hóa và xử lý ngoại lệ tập trung' },
+    ],
+    youtube: {
+      title: 'RESTful API Là Gì? Hướng Dẫn Thiết Kế API Chuẩn Nhất',
+      channel: '28Tech',
+      url: 'https://www.youtube.com/watch?v=lsMQRaeKNDk',
+      videoId: 'lsMQRaeKNDk',
+      duration: '1 giờ 30 phút • REST Best Practices',
+    },
+    quizTitle: 'Trắc nghiệm Thiết kế RESTful API & HTTP Methods',
+    practiceQuestions: [
+      {
+        question: 'Phương thức HTTP nào mang tính Idempotent (thực hiện nhiều lần cho cùng kết quả) và dùng để cập nhật toàn bộ tài nguyên?',
+        options: ['POST', 'PUT', 'PATCH', 'OPTIONS'],
+        answer: 1,
+        explanation: 'PUT mang tính idempotent và được dùng để thay thế toàn bộ trạng thái tài nguyên đích.',
+      },
+      {
+        question: 'Mã trạng thái HTTP nào biểu thị việc tạo mới tài nguyên thành công trên server?',
+        options: ['200 OK', '201 Created', '204 No Content', '304 Not Modified'],
+        answer: 1,
+        explanation: '201 Created là mã chuẩn thông báo tài nguyên mới đã được khởi tạo thành công.',
+      },
+    ],
+  },
+  api: {
+    courseCode: 'PRJ301',
+    courseFallback: { code: 'PRJ301', title: 'Lập trình Web & Dịch vụ Backend' },
+    materials: [
+      { title: '[PRJ301] Hướng dẫn Thiết kế RESTful API Chuẩn Công nghiệp & Mã Trạng thái HTTP', desc: 'Thiết kế Resource URI, HTTP methods, Status codes và bảo mật Token' },
+    ],
+    youtube: {
+      title: 'RESTful API Là Gì? Hướng Dẫn Thiết Kế API Chuẩn Nhất',
+      channel: '28Tech',
+      url: 'https://www.youtube.com/watch?v=lsMQRaeKNDk',
+      videoId: 'lsMQRaeKNDk',
+      duration: '1 giờ 30 phút • REST Best Practices',
+    },
+    quizTitle: 'Trắc nghiệm Thiết kế RESTful API & HTTP Methods',
+    practiceQuestions: [
+      {
+        question: 'Phương thức HTTP nào dùng để lấy dữ liệu mà không làm thay đổi trạng thái server?',
+        options: ['POST', 'GET', 'PUT', 'DELETE'],
+        answer: 1,
+        explanation: 'GET là phương thức an toàn (safe method) chỉ dùng để đọc dữ liệu.',
+      },
+    ],
+  },
+  'html/css': {
+    courseCode: 'FER202',
+    courseFallback: { code: 'FER202', title: 'Lập trình Web Frontend với React' },
+    materials: [
+      { title: '[FER202] Giáo trình HTML5 & CSS3 Chuyên sâu: Flexbox, CSS Grid và Responsive Media Queries', desc: 'Thiết kế giao diện thích ứng đa thiết bị, Semantic HTML chuẩn SEO và Accessibility (a11y)' },
+      { title: '[FER202] Slide: CSS Box Model, Specificity và Kỹ thuật Tối ưu Animation 60fps', desc: 'Transform, Transition, Keyframes và nguyên tắc rendering mượt mà' },
+    ],
+    youtube: {
+      title: 'Khóa học HTML CSS Từ Cơ Bản Đến Nâng Cao Dành Cho Người Mới',
+      channel: 'F8 Official',
+      url: 'https://www.youtube.com/watch?v=R6plN3FvzFY',
+      videoId: 'R6plN3FvzFY',
+      duration: '10 giờ • Dự án thực chiến',
+    },
+    quizTitle: 'Trắc nghiệm HTML5 & CSS Layout Fundamentals',
+    practiceQuestions: [
+      {
+        question: 'Thẻ ngữ nghĩa (semantic tag) nào trong HTML5 dùng để định nghĩa khối nội dung độc lập như bài báo hoặc tin tức?',
+        options: ['<section>', '<article>', '<div>', '<main>'],
+        answer: 1,
+        explanation: '<article> dùng cho nội dung hoàn chỉnh và độc lập có thể phân phối hoặc tái sử dụng riêng.',
+      },
+    ],
+  },
+  kubernetes: {
+    courseCode: 'SWP391',
+    courseFallback: { code: 'SWP391', title: 'Đồ án Ứng dụng Thực tế & Hạ tầng Phân tán' },
+    materials: [
+      { title: '[SWP391] Cẩm nang Điều phối Container với Kubernetes (K8s) Cluster', desc: 'Deployments, Services, ConfigMaps, Ingress và HPA Auto-scaling' },
+    ],
+    youtube: {
+      title: 'Kubernetes Toàn Tập: Pods, Services, Deployments Dành Cho Developer',
+      channel: 'TechMaster',
+      url: 'https://www.youtube.com/watch?v=X48VuDVv0do',
+      videoId: 'X48VuDVv0do',
+      duration: '3 giờ 30 phút • Điều phối container',
+    },
+    quizTitle: 'Trắc nghiệm Kubernetes Architecture & Deployments',
+    practiceQuestions: [
+      {
+        question: 'Đối tượng nhỏ nhất và cơ bản nhất có thể triển khai được trong Kubernetes là gì?',
+        options: ['Node', 'Pod', 'Service', 'Container'],
+        answer: 1,
+        explanation: 'Pod là đơn vị tính toán nhỏ nhất được quản lý bởi Kubernetes, chứa một hoặc nhiều containers cùng chia sẻ network và storage.',
+      },
+    ],
+  },
+  pandas: {
+    courseCode: 'AIL303m',
+    courseFallback: { code: 'AIL303m', title: 'Học máy & Xử lý Dữ liệu Thông minh' },
+    materials: [
+      { title: '[AIL303m] Cẩm nang Khai phá Dữ liệu với Pandas & NumPy: Làm sạch và Biến đổi', desc: 'Xử lý missing data, GroupBy, Pivot Table và tối ưu bộ nhớ DataFrame' },
+    ],
+    youtube: {
+      title: 'Xử Lý Dữ Liệu Bằng Pandas & Python Thực Chiến',
+      channel: 'Dạy Nhau Học',
+      url: 'https://www.youtube.com/watch?v=dcqPhpY7tWk',
+      videoId: 'dcqPhpY7tWk',
+      duration: '2 giờ 45 phút • Pandas & Python',
+    },
+    quizTitle: 'Trắc nghiệm Xử lý Dữ liệu với thư viện Pandas',
+    practiceQuestions: [
+      {
+        question: 'Phương thức nào trong Pandas dùng để loại bỏ các hàng có chứa giá trị bị thiếu (NaN)?',
+        options: ['df.fillna()', 'df.dropna()', 'df.drop()', 'df.clean()'],
+        answer: 1,
+        explanation: 'dropna() loại bỏ các hàng hoặc cột chứa giá trị missing NaN.',
+      },
+    ],
+  },
+  'react native': {
+    courseCode: 'FER202',
+    courseFallback: { code: 'FER202', title: 'Lập trình Ứng dụng Di động Đa nền tảng' },
+    materials: [
+      { title: 'Giáo trình Lập trình Ứng dụng Di động Đa Nền tảng với React Native & Expo', desc: 'Navigation Stack, Core Components, Async Storage và tích hợp Native APIs' },
+    ],
+    youtube: {
+      title: 'Học Lập Trình React Native Cho Người Mới Bắt Đầu',
+      channel: 'Hỏi Dân IT',
+      url: 'https://www.youtube.com/watch?v=0-S5a0eXPoc',
+      videoId: '0-S5a0eXPoc',
+      duration: '4 giờ • Expo & React Native',
+    },
+    quizTitle: 'Trắc nghiệm Lập trình Mobile React Native Fundamentals',
+    practiceQuestions: [
+      {
+        question: 'Trong React Native, component nào tương đương với thẻ <div> trong HTML để tạo khối giao diện?',
+        options: ['<Text>', '<View>', '<Block>', '<Container>'],
+        answer: 1,
+        explanation: '<View> là component cơ bản nhất để xây dựng UI trong React Native, hỗ trợ layout Flexbox.',
       },
     ],
   },
@@ -372,6 +625,14 @@ const buildRemediationList = async (skills, studentId) => {
           description: `Học phần chuẩn bị năng lực cho kỹ năng ${rawSkillName || norm}`,
           isEnrolled: false,
         };
+      } else {
+        linkedCourse = {
+          _id: null,
+          code: 'SWP391',
+          title: `Đồ án Phát triển & Thực hành (${rawSkillName || norm})`,
+          description: `Học phần chuẩn bị năng lực và ứng dụng thực chiến cho kỹ năng ${rawSkillName || norm}`,
+          isEnrolled: false,
+        };
       }
 
       // 2. Material linking
@@ -384,6 +645,15 @@ const buildRemediationList = async (skills, studentId) => {
 
       if (linkedMaterials.length === 0 && remData.materials?.length) {
         linkedMaterials = remData.materials;
+      }
+      if (linkedMaterials.length === 0) {
+        linkedMaterials = [
+          {
+            _id: null,
+            title: `[Tài liệu STE] Giáo trình & Hướng dẫn Thực hành ${rawSkillName || norm} từ Cơ bản đến Nâng cao`,
+            description: `Tài liệu tóm tắt kiến thức cốt lõi, best practices và bài tập rèn luyện kỹ năng ${rawSkillName || norm}`,
+          },
+        ];
       }
 
       // 3. Quiz linking
