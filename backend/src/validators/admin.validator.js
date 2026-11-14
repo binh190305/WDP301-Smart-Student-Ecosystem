@@ -74,7 +74,7 @@ const listTaxonomiesQuerySchema = Joi.object({
 
 const reportQuerySchema = Joi.object({
   from: Joi.date().iso(),
-  to: Joi.date().iso().min(Joi.ref('from')),
+  to: Joi.date().iso().when('from', { is: Joi.exist(), then: Joi.date().iso().min(Joi.ref('from')) }),
   format: Joi.string().valid('json', 'csv').default('json'),
 });
 

@@ -4,7 +4,7 @@ const createAssignmentSchema = Joi.object({
   course: Joi.string().hex().length(24).required(),
   title: Joi.string().min(3).max(200).required(),
   description: Joi.string().max(5000).allow(''),
-  dueDate: Joi.date().iso().allow(null),
+  dueDate: Joi.date().iso().allow(null, ''),
   maxScore: Joi.number().min(1).max(100),
   isPublished: Joi.boolean(),
 });
@@ -12,7 +12,7 @@ const createAssignmentSchema = Joi.object({
 const updateAssignmentSchema = Joi.object({
   title: Joi.string().min(3).max(200),
   description: Joi.string().max(5000).allow(''),
-  dueDate: Joi.date().iso().allow(null),
+  dueDate: Joi.date().iso().allow(null, ''),
   maxScore: Joi.number().min(1).max(100),
   isPublished: Joi.boolean(),
 }).min(1);

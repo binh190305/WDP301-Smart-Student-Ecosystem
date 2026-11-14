@@ -3,7 +3,7 @@ const asyncHandler = require('../utils/async-handler');
 const teamResourceService = require('../services/team-resource.service');
 
 const uploadFile = asyncHandler(async (req, res) => {
-  if (!req.file) throw new AppError('No file was uploaded', 400);
+  if (!req.file) throw new AppError('Vui lòng chọn tệp để tải lên', 400);
   const resource = await teamResourceService.addFileResource(req.params.id, req.user.id, req.file, req.body.title);
   res.status(201).json({ success: true, data: { resource } });
 });

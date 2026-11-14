@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 
 const UPLOADS_ROOT = path.join(__dirname, '..', '..', 'uploads');
 const AVATARS_ROOT = path.join(UPLOADS_ROOT, 'avatars');
@@ -40,8 +41,17 @@ const resolveUploadPath = (fileUrl) => {
 const resolveStoredPath = (storagePath, fileUrl) => {
   if (storagePath) {
     const resolved = path.resolve(storagePath);
-    if (resolved !== UPLOADS_ROOT && !resolved.startsWith(UPLOADS_ROOT + path.sep)) return null;
-    return resolved;
+    if (resolved.startsWith(UPLOADS_ROOT + path.sep) && fs.existsSync(resolved)) {
+      return resolved;
+    }
+    const match = storagePath.split(/[\\/]uploads[\\/]/i);
+    if (match.length > 1) {
+      const relPath = match[match.length - 1];
+      const remapped = path.resolve(UPLOADS_ROOT, relPath);
+      if (remapped.startsWith(UPLOADS_ROOT + path.sep) && fs.existsSync(remapped)) {
+        return remapped;
+      }
+    }
   }
   return resolveUploadPath(fileUrl);
 };
