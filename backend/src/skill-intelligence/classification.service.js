@@ -5,7 +5,7 @@
  */
 const mongoose = require('mongoose');
 const Taxonomy = require('../models/taxonomy.model');
-const { rolesForSkill } = require('../recommendation/skill-catalog');
+const { rolesForSkill, normalizeSkill } = require('../recommendation/skill-catalog');
 
 // Category mapping from skill-catalog role keys → readable category names
 const ROLE_TO_CATEGORY = {
@@ -87,15 +87,21 @@ const findOrCreateSkillTaxonomy = async (normalizedName, displayName) => {
 };
 
 /**
- * Classify an array of normalized skill names:
+ * Classify an array of skills (strings or objects with normalizedName / displayName):
  * returns taxonomy ID, category name, and whether the taxonomy entry was new.
  */
 const classifyMany = async (skills) => {
   const results = [];
-  for (const { normalizedName, displayName } of skills) {
-    const category = inferCategory(normalizedName);
-    const { taxonomy, created } = await findOrCreateSkillTaxonomy(normalizedName, displayName);
-    results.push({ normalizedName, displayName, category, taxonomyId: taxonomy._id, created });
+  if (!Array.isArray(skills)) return results;
+  for (const item of skills) {
+    if (!item) continue;
+    const rawName = typeof item === 'string' ? item : (item.displayName || item.name || item.skillName || item.normalizedName || '');
+    if (!rawName) continue;
+    const norm = (typeof item === 'object' && item.normalizedName) ? item.normalizedName : normalizeSkill(rawName);
+    const disp = (typeof item === 'object' && item.displayName) ? item.displayName : rawName;
+    const category = inferCategory(norm);
+    const { taxonomy, created } = await findOrCreateSkillTaxonomy(norm, disp);
+    results.push({ normalizedName: norm, displayName: disp, category, taxonomyId: taxonomy?._id, created });
   }
   return results;
 };

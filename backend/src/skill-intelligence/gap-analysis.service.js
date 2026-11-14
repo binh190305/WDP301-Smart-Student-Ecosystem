@@ -246,12 +246,21 @@ const analyzeGap = async (studentId, { targetSkills = [], projectDescription = '
     ...partial.map((p) => ({ name: p.skillName, gap: p.gap, priority: p.priority })),
   ].sort((a, b) => b.priority - a.priority);
 
-  const remediation = await buildRemediationList(skillsToLearn.map((s) => s.name));
+  const skillsToRemediate = skillsToLearn.map((s) => ({
+    skillName: s.name,
+    normalizedName: (s.name || '').toLowerCase().trim(),
+    gap: s.gap,
+  }));
+  const remediation = await buildRemediationList(skillsToRemediate, studentId);
 
   const learningRoadmap = skillsToLearn.map((s, idx) => {
-    const rem = remediation.find((r) => r.skillName.toLowerCase() === s.name.toLowerCase()) || {
+    const rem = remediation.find(
+      (r) => (r.skillName || r.normalizedName || '').toLowerCase() === (s.name || '').toLowerCase()
+    ) || {
+      course: null,
       courses: [],
       materials: [],
+      quiz: null,
       quizzes: [],
     };
 
@@ -260,9 +269,11 @@ const analyzeGap = async (studentId, { targetSkills = [], projectDescription = '
       skillName: s.name,
       gap: s.gap,
       priority: s.priority,
-      recommendedCourses: rem.courses || [],
+      recommendedCourses: rem.course ? [rem.course] : (rem.courses || []),
       recommendedMaterials: rem.materials || [],
-      recommendedQuizzes: rem.quizzes || [],
+      recommendedQuizzes: rem.quiz ? [rem.quiz] : (rem.quizzes || []),
+      youtube: rem.youtube || null,
+      practiceQuestions: rem.practiceQuestions || [],
     };
   });
 

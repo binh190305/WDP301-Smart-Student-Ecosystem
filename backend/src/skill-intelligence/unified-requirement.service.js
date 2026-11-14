@@ -42,14 +42,19 @@ const buildProjectRequirements = async ({ text = '', templateId = '', templateCo
     if (selectedTemplate && Array.isArray(selectedTemplate.requiredSkills)) {
       for (const req of selectedTemplate.requiredSkills) {
         const normalized = normalizeSkill(req.name || req.normalizedName);
+        const reqLevel = req.requiredLevel || req.minProficiency || 'intermediate';
+        const reqNum = req.requiredProficiencyNumber || req.minProficiencyLevel || PROFICIENCY_NUMBERS[reqLevel] || 3;
+        const rawImp = req.importance || 'medium';
+        const imp = rawImp === 'core' ? 'high' : rawImp === 'important' ? 'medium' : rawImp === 'nice_to_have' ? 'low' : rawImp;
+
         skillsMap.set(normalized, {
           name: req.name,
           normalizedName: normalized,
           category: req.category || 'General',
-          requiredLevel: req.requiredLevel || 'intermediate',
-          requiredProficiencyNumber: req.requiredProficiencyNumber || PROFICIENCY_NUMBERS[req.requiredLevel] || 3,
-          importance: req.importance || 'medium',
-          weight: IMPORTANCE_WEIGHTS[req.importance] || 1.0,
+          requiredLevel: reqLevel,
+          requiredProficiencyNumber: reqNum,
+          importance: imp,
+          weight: IMPORTANCE_WEIGHTS[imp] || 1.0,
           requiredCompetencies: req.requiredCompetencies || [],
           reasoning: req.reasoning || `Kỹ năng nòng cốt theo cấu trúc mẫu ${selectedTemplate.title}`,
           source: 'template',

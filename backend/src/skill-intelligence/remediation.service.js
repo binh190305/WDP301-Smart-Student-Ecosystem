@@ -345,8 +345,12 @@ const buildRemediationList = async (skills, studentId) => {
     const courseByCode = new Map(courses.map((c) => [c.code?.toUpperCase(), c]));
     const enrolledCourseIds = new Set(enrollments.map((e) => e.course?.toString()));
 
-    return skills.map((item) => {
-      const norm = (item.normalizedName || item.skillName || '').toLowerCase().trim();
+    return skills.map((rawItem) => {
+      const item = typeof rawItem === 'string'
+        ? { skillName: rawItem, normalizedName: rawItem.toLowerCase().trim() }
+        : rawItem;
+      const rawSkillName = item.skillName || item.name || '';
+      const norm = (item.normalizedName || rawSkillName).toLowerCase().trim();
       const remData = REMEDIATION_KNOWLEDGE_BASE[norm] || {};
 
       // 1. Course linking
@@ -365,7 +369,7 @@ const buildRemediationList = async (skills, studentId) => {
           _id: null,
           code: remData.courseFallback.code,
           title: remData.courseFallback.title,
-          description: `Học phần chuẩn bị năng lực cho kỹ năng ${item.skillName}`,
+          description: `Học phần chuẩn bị năng lực cho kỹ năng ${rawSkillName || norm}`,
           isEnrolled: false,
         };
       }
@@ -390,13 +394,13 @@ const buildRemediationList = async (skills, studentId) => {
 
       const quizPayload = linkedQuiz
         ? { _id: linkedQuiz._id, title: linkedQuiz.title, questionCount: linkedQuiz.questions?.length || 4 }
-        : { _id: null, title: remData.quizTitle || `Trắc nghiệm ôn tập ${item.skillName}`, questionCount: 4 };
+        : { _id: null, title: remData.quizTitle || `Trắc nghiệm ôn tập ${rawSkillName || norm}`, questionCount: 4 };
 
       const requiredNum = item.requiredLevel || 3;
       const studentNum = item.studentLevel || 0;
 
       return {
-        skillName: item.skillName,
+        skillName: rawSkillName || norm,
         normalizedName: norm,
         category: item.category || 'Software Engineering',
         requiredLevel: requiredNum,

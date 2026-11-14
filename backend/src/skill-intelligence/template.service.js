@@ -9,6 +9,7 @@ const { normalizeSkill } = require('../recommendation/skill-catalog');
 const DEFAULT_TEMPLATES = [
   {
     code: 'web_fullstack_mern',
+    templateId: 'mern-fullstack',
     title: '🌐 Web Fullstack (MERN)',
     category: 'Web Development',
     description: 'Xây dựng hệ sinh thái sinh viên thông minh với React, Node.js, Express, MongoDB, TypeScript và Docker.',
@@ -87,6 +88,7 @@ const DEFAULT_TEMPLATES = [
   },
   {
     code: 'ai_data_science',
+    templateId: 'ai-data-science',
     title: '🤖 Trí tuệ Nhân tạo & Xử lý Dữ liệu',
     category: 'Artificial Intelligence',
     description: 'Hệ thống gợi ý đề tài và ghép nhóm tự động bằng mô hình AI & Học máy.',
@@ -154,6 +156,7 @@ const DEFAULT_TEMPLATES = [
   },
   {
     code: 'mobile_app_react_native',
+    templateId: 'mobile-app',
     title: '📱 Mobile App (React Native)',
     category: 'Mobile Development',
     description: 'Ứng dụng di động sinh viên hỗ trợ học tập, tra cứu lịch và thông báo thời gian thực.',
@@ -209,7 +212,65 @@ const DEFAULT_TEMPLATES = [
     ],
   },
   {
+    code: 'uiux_design',
+    templateId: 'uiux-frontend',
+    title: '🎨 Thiết kế UI/UX & Frontend Design',
+    category: 'UI/UX Design',
+    description: 'Thiết kế Design System, Prototype Figma và hiện thực hoá giao diện người dùng chuẩn UX.',
+    sampleProjectText:
+      'Dự án thiết kế lại trải nghiệm người dùng cho hệ thống cổng thông tin đào tạo sinh viên. Nghiên cứu hành vi người dùng, xây dựng User Flow, thiết kế Wireframe và Design System toàn diện trên Figma. Hiện thực hóa các component giao diện bằng React, HTML/CSS và Tailwind CSS đảm bảo responsive và tương thích trên nhiều kích cỡ màn hình.',
+    roleRequirements: ['UI/UX Designer', 'Frontend Developer'],
+    tags: ['ui/ux', 'figma', 'frontend', 'design system', 'tailwind'],
+    requiredSkills: [
+      {
+        name: 'Figma',
+        normalizedName: 'figma',
+        category: 'UI/UX Design',
+        requiredLevel: 'advanced',
+        requiredProficiencyNumber: 4,
+        importance: 'high',
+        weight: 1.5,
+        requiredCompetencies: ['Design Systems', 'Interactive Prototyping', 'Auto-Layout & Variants'],
+        reasoning: 'Công cụ cốt lõi để xây dựng layout và kiểm thử trải nghiệm người dùng.',
+      },
+      {
+        name: 'HTML/CSS',
+        normalizedName: 'html/css',
+        category: 'Frontend Development',
+        requiredLevel: 'advanced',
+        requiredProficiencyNumber: 4,
+        importance: 'high',
+        weight: 1.3,
+        requiredCompetencies: ['Semantic HTML', 'Flexbox & CSS Grid', 'Responsive Media Queries'],
+        reasoning: 'Nền tảng chuyển giao thiết kế sang code hiển thị pixel-perfect.',
+      },
+      {
+        name: 'React',
+        normalizedName: 'react',
+        category: 'Frontend Development',
+        requiredLevel: 'intermediate',
+        requiredProficiencyNumber: 3,
+        importance: 'medium',
+        weight: 1.1,
+        requiredCompetencies: ['Component Modularity', 'Tailwind CSS Integration', 'Interactive UI States'],
+        reasoning: 'Hiện thực hóa các component trong thư viện giao diện chung.',
+      },
+      {
+        name: 'Git',
+        normalizedName: 'git',
+        category: 'Software Engineering',
+        requiredLevel: 'intermediate',
+        requiredProficiencyNumber: 3,
+        importance: 'low',
+        weight: 0.8,
+        requiredCompetencies: ['Asset Versioning', 'Pull Requests'],
+        reasoning: 'Quản lý tài nguyên thiết kế và đồng bộ code frontend với đội ngũ.',
+      },
+    ],
+  },
+  {
     code: 'cloud_devops',
+    templateId: 'devops-cloud',
     title: '☁️ Cloud & DevOps Engineering',
     category: 'DevOps & Cloud',
     description: 'Triển khai hạ tầng CI/CD, Containerization và giám sát hệ thống học tập tự động.',
@@ -261,9 +322,30 @@ const DEFAULT_TEMPLATES = [
 const ensureDefaultTemplates = async () => {
   if (mongoose.connection.readyState !== 1) return;
   for (const t of DEFAULT_TEMPLATES) {
-    const existing = await SkillTemplate.findOne({ code: t.code });
+    const existing = await SkillTemplate.findOne({
+      $or: [
+        { code: t.code },
+        { templateId: t.templateId },
+        { code: t.templateId },
+        { templateId: t.code },
+      ].filter(Boolean),
+    });
     if (!existing) {
-      await SkillTemplate.create(t);
+      await SkillTemplate.create({
+        ...t,
+        templateId: t.templateId || t.code,
+        code: t.code,
+      });
+    } else {
+      let changed = false;
+      if (!existing.code) { existing.code = t.code; changed = true; }
+      if (!existing.templateId) { existing.templateId = t.templateId || t.code; changed = true; }
+      if (!existing.sampleProjectText) { existing.sampleProjectText = t.sampleProjectText; changed = true; }
+      if (!existing.requiredSkills || existing.requiredSkills.length === 0) {
+        existing.requiredSkills = t.requiredSkills;
+        changed = true;
+      }
+      if (changed) await existing.save();
     }
   }
 };
@@ -283,15 +365,16 @@ const getTemplates = async () => {
  * Get template by ID or code.
  */
 const getTemplateByIdOrCode = async (idOrCode) => {
-  const code = (idOrCode || '').toLowerCase();
-  const fallback = DEFAULT_TEMPLATES.find((t) => t.code === code);
+  if (!idOrCode) return null;
+  const code = idOrCode.toLowerCase();
+  const fallback = DEFAULT_TEMPLATES.find((t) => t.code === code || t.templateId === code);
   if (mongoose.connection.readyState !== 1) {
     return fallback || null;
   }
   await ensureDefaultTemplates();
   const query = idOrCode.match(/^[0-9a-fA-F]{24}$/)
     ? { _id: idOrCode }
-    : { code };
+    : { $or: [{ code }, { templateId: code }, { code: idOrCode }, { templateId: idOrCode }] };
   const found = await SkillTemplate.findOne(query).lean();
   return found || fallback || null;
 };

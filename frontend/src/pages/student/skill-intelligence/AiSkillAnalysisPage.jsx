@@ -46,32 +46,52 @@ export default function AiSkillAnalysisPage() {
   const [newReqImportance, setNewReqImportance] = useState('medium');
 
   // Load Database-backed templates on mount
-  useEffect(() => {
-    const loadTemplates = async () => {
-      try {
-        setLoadingTemplates(true);
-        const res = await skillIntelligenceApi.getTemplates();
-        const payload = res?.data || res;
-        const list = Array.isArray(payload) ? payload : (payload?.data || payload?.templates || []);
-        setTemplates(list);
-        if (list.length > 0) {
-          setSelectedTemplateId(list[0].code || list[0]._id);
+  const loadTemplates = async () => {
+    try {
+      setLoadingTemplates(true);
+      const res = await skillIntelligenceApi.getTemplates();
+      const payload = res?.data || res;
+      const list = Array.isArray(payload) ? payload : (payload?.data || payload?.templates || []);
+      setTemplates(list);
+      if (list.length > 0) {
+        const first = list[0];
+        const firstKey = first.code || first.templateId || first._id;
+        setSelectedTemplateId(firstKey);
+        if (first.sampleProjectText) {
+          setProjectText(first.sampleProjectText);
         }
-      } catch {
-        showToast('Không thể tải danh sách dự án mẫu từ hệ thống', 'error');
-      } finally {
-        setLoadingTemplates(false);
       }
-    };
+    } catch {
+      showToast('Không thể tải danh sách dự án mẫu từ hệ thống', 'error');
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
+  useEffect(() => {
     loadTemplates();
   }, []);
 
   // When template changes, populate preview text
   const handleTemplateChange = (val) => {
     setSelectedTemplateId(val);
-    const tmpl = templates.find((t) => t.code === val || t._id === val);
-    if (tmpl && tmpl.sampleProjectText && !projectText) {
+    const tmpl = templates.find((t) => t.code === val || t.templateId === val || t._id === val);
+    if (tmpl && tmpl.sampleProjectText) {
       setProjectText(tmpl.sampleProjectText);
+    }
+  };
+
+  // Quick Demo Preset Loader for Presentation
+  const handleLoadDemoPreset = (code) => {
+    const tmpl = templates.find((t) => t.code === code || t.templateId === code);
+    if (tmpl) {
+      const key = tmpl.code || tmpl.templateId || tmpl._id;
+      setSelectedTemplateId(key);
+      setInputMode('both');
+      if (tmpl.sampleProjectText) {
+        setProjectText(tmpl.sampleProjectText);
+      }
+      showToast(`Đã nạp sẵn dữ liệu demo: ${tmpl.title}`, 'info');
     }
   };
 
@@ -189,6 +209,66 @@ export default function AiSkillAnalysisPage() {
         </p>
       </div>
 
+      {/* QUICK DEMO PRESETS BAR FOR PRESENTATION */}
+      <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-100/60 border border-amber-200/80 p-5 rounded-2xl shadow-xs space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500 text-white font-bold text-sm shadow-xs">
+              🎯
+            </span>
+            <div>
+              <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
+                Dữ liệu Mẫu Thuyết trình (Click 1 chạm để Demo ngay)
+              </h3>
+              <p className="text-[11px] text-gray-600">
+                Tự động nạp đề tài chuẩn từ bộ môn FPT, kết hợp AI tinh chỉnh và đo khoảng cách năng lực thực tế.
+              </p>
+            </div>
+          </div>
+          <span className="text-[11px] px-2.5 py-1 bg-white text-amber-800 font-semibold rounded-full border border-amber-200 self-start sm:self-auto shadow-2xs">
+            Demo Ready
+          </span>
+        </div>
+
+        <div className="flex flex-wrap gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => handleLoadDemoPreset('web_fullstack_mern')}
+            className="px-3.5 py-2 bg-white hover:bg-amber-100/80 border border-amber-300 rounded-xl text-xs font-semibold text-gray-800 shadow-2xs transition flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <span>🌐</span> SWP391: Web Fullstack MERN (12 Kỹ năng)
+          </button>
+          <button
+            type="button"
+            onClick={() => handleLoadDemoPreset('ai_data_science')}
+            className="px-3.5 py-2 bg-white hover:bg-amber-100/80 border border-amber-300 rounded-xl text-xs font-semibold text-gray-800 shadow-2xs transition flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <span>🤖</span> AIL303m: AI & Hệ thống Gợi ý (Học máy)
+          </button>
+          <button
+            type="button"
+            onClick={() => handleLoadDemoPreset('mobile_app_react_native')}
+            className="px-3.5 py-2 bg-white hover:bg-amber-100/80 border border-amber-300 rounded-xl text-xs font-semibold text-gray-800 shadow-2xs transition flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <span>📱</span> Mobile App: Sổ tay Sinh viên (React Native)
+          </button>
+          <button
+            type="button"
+            onClick={() => handleLoadDemoPreset('uiux_design')}
+            className="px-3.5 py-2 bg-white hover:bg-amber-100/80 border border-amber-300 rounded-xl text-xs font-semibold text-gray-800 shadow-2xs transition flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <span>🎨</span> UI/UX: Design System & Prototype Figma
+          </button>
+          <button
+            type="button"
+            onClick={() => handleLoadDemoPreset('cloud_devops')}
+            className="px-3.5 py-2 bg-white hover:bg-amber-100/80 border border-amber-300 rounded-xl text-xs font-semibold text-gray-800 shadow-2xs transition flex items-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <span>☁️</span> Cloud & DevOps: Microservices Docker K8s
+          </button>
+        </div>
+      </div>
+
       {/* SECTION 1: UNIFIED INPUT CONTROLS */}
       <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-6">
         {/* Mode Selector Tabs */}
@@ -228,32 +308,62 @@ export default function AiSkillAnalysisPage() {
         {/* INPUT B: Template Selection */}
         {(inputMode === 'template' || inputMode === 'both') && (
           <div className="space-y-3">
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
-              Chọn Cấu trúc Dự án Mẫu từ Cơ sở Dữ liệu
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Chọn Cấu trúc Dự án Mẫu từ Cơ sở Dữ liệu ({templates.length} mẫu chuẩn)
+              </label>
+              <button
+                type="button"
+                onClick={loadTemplates}
+                className="text-[11px] text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1"
+              >
+                <span>🔄</span> Tải lại danh mục
+              </button>
+            </div>
             {loadingTemplates ? (
-              <div className="text-xs text-gray-400">Đang tải danh mục dự án mẫu...</div>
+              <div className="p-8 text-center text-xs text-gray-400 border border-dashed rounded-xl">
+                Đang tải danh mục dự án mẫu từ cơ sở dữ liệu...
+              </div>
+            ) : templates.length === 0 ? (
+              <div className="p-8 text-center text-xs text-amber-700 bg-amber-50 rounded-xl border border-amber-200">
+                Chưa có cấu trúc dự án mẫu trong hệ thống.
+                <button onClick={loadTemplates} className="ml-2 font-bold underline">Thử tải lại</button>
+              </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
                 {templates.map((tmpl) => {
-                  const isSelected = selectedTemplateId === tmpl.code || selectedTemplateId === tmpl._id;
+                  const key = tmpl.code || tmpl.templateId || tmpl._id;
+                  const isSelected =
+                    selectedTemplateId === tmpl.code ||
+                    selectedTemplateId === tmpl.templateId ||
+                    selectedTemplateId === tmpl._id;
                   return (
                     <div
-                      key={tmpl.code || tmpl._id}
-                      onClick={() => handleTemplateChange(tmpl.code || tmpl._id)}
+                      key={key}
+                      onClick={() => handleTemplateChange(key)}
                       className={`cursor-pointer p-4 rounded-xl border transition text-left flex flex-col justify-between ${
                         isSelected
-                          ? 'border-indigo-600 bg-indigo-50/50 shadow-sm ring-2 ring-indigo-500/20'
-                          : 'border-gray-200 hover:border-gray-300 bg-white'
+                          ? 'border-indigo-600 bg-indigo-50/70 shadow-sm ring-2 ring-indigo-500/20'
+                          : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50/50'
                       }`}
                     >
                       <div>
-                        <div className="font-bold text-sm text-gray-900">{tmpl.title}</div>
-                        <span className="text-[11px] text-indigo-600 font-medium">{tmpl.category}</span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-semibold truncate max-w-[120px]">
+                            {tmpl.category}
+                          </span>
+                          {isSelected && (
+                            <span className="text-[11px] text-indigo-600 font-bold flex items-center gap-0.5">
+                              ✓ Đang chọn
+                            </span>
+                          )}
+                        </div>
+                        <div className="font-bold text-sm text-gray-900 mt-2">{tmpl.title}</div>
                         <p className="text-xs text-gray-500 mt-1 line-clamp-2">{tmpl.description}</p>
                       </div>
-                      <div className="mt-3 text-[11px] text-gray-400">
-                        {tmpl.requiredSkills?.length || 0} kỹ năng chuẩn
+                      <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
+                        <span>🎯 {tmpl.requiredSkills?.length || 0} kỹ năng chuẩn</span>
+                        {tmpl.tags?.[0] && <span className="text-gray-400 font-mono text-[10px]">#{tmpl.tags[0]}</span>}
                       </div>
                     </div>
                   );
@@ -266,9 +376,37 @@ export default function AiSkillAnalysisPage() {
         {/* INPUT A: Free Text Extraction */}
         {(inputMode === 'text' || inputMode === 'both') && (
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
-              {inputMode === 'both' ? 'Bổ sung Mô tả / Yêu cầu Công nghệ để AI Tinh chỉnh' : 'Mô tả Dự án / Đề tài / JD Tuyển dụng'}
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                {inputMode === 'both' ? 'Bổ sung Mô tả / Yêu cầu Công nghệ để AI Tinh chỉnh' : 'Mô tả Dự án / Đề tài / JD Tuyển dụng'}
+              </label>
+              <div className="flex items-center gap-3">
+                {selectedTemplateId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const tmpl = templates.find((t) => t.code === selectedTemplateId || t.templateId === selectedTemplateId || t._id === selectedTemplateId);
+                      if (tmpl && tmpl.sampleProjectText) {
+                        setProjectText(tmpl.sampleProjectText);
+                        showToast('Đã nạp văn bản mô tả của dự án mẫu đang chọn', 'info');
+                      }
+                    }}
+                    className="text-[11px] text-indigo-600 hover:text-indigo-800 font-medium"
+                  >
+                    📄 Nạp mô tả dự án đang chọn
+                  </button>
+                )}
+                {projectText && (
+                  <button
+                    type="button"
+                    onClick={() => setProjectText('')}
+                    className="text-[11px] text-gray-400 hover:text-rose-600"
+                  >
+                    🧹 Xóa trắng
+                  </button>
+                )}
+              </div>
+            </div>
             <textarea
               rows={4}
               placeholder="Dán nội dung mô tả đề tài, tài liệu kỹ thuật, danh sách công nghệ cần dùng..."
@@ -284,7 +422,7 @@ export default function AiSkillAnalysisPage() {
           <button
             onClick={handleProcessPipeline}
             disabled={processingPipeline}
-            className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-sm transition disabled:opacity-50 flex items-center gap-2"
+            className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-sm transition disabled:opacity-50 flex items-center gap-2 hover:scale-[1.01] active:scale-[0.99]"
           >
             {processingPipeline ? (
               <>
