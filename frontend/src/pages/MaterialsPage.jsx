@@ -145,21 +145,32 @@ const MaterialsPage = () => {
   };
 
   return (
-    <div>
-      <PageHeader
-        title={canManage ? 'Tài liệu giảng dạy' : 'Tài liệu học tập'}
-        description="Kho tài liệu học tập tin cậy do giảng viên biên soạn."
-        action={
-          canManage && (
-            <Button onClick={() => setUploadOpen(true)}>
-              <Icon name="upload" className="h-4 w-4" /> Tải tài liệu
-            </Button>
-          )
-        }
-      />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-50 dark:bg-violet-950/60 text-violet-600 dark:text-violet-300 text-sm font-bold">
+              📚
+            </span>
+            <h1 className="text-2xl font-black tracking-tight text-stone-900 dark:text-stone-100">
+              {canManage ? 'Tài liệu giảng dạy' : 'Tài liệu học tập'}
+            </h1>
+          </div>
+          <p className="text-sm font-medium text-stone-500 dark:text-stone-300 mt-1">
+            Kho tài liệu, giáo trình và bài giảng chính quy do giảng viên biên soạn và cập nhật.
+          </p>
+        </div>
+        {canManage && (
+          <Button onClick={() => setUploadOpen(true)} className="shadow-md shadow-violet-500/20">
+            <Icon name="upload" className="h-4 w-4" /> Tải tài liệu lên
+          </Button>
+        )}
+      </div>
 
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row">
-        <Select className="sm:flex-1" value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)}>
+      {/* Filter and Search Bar */}
+      <div className="card-bento p-4 bg-white dark:bg-[#1e1e1e] border border-stone-200/80 dark:border-neutral-700/80 flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <Select className="w-full sm:w-72" value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)}>
           <option value="">Tất cả học phần</option>
           {courses.map((course) => (
             <option key={course._id} value={course._id}>
@@ -167,15 +178,27 @@ const MaterialsPage = () => {
             </option>
           ))}
         </Select>
+
         <form
-          className="flex gap-2 sm:flex-1"
+          className="flex gap-2 w-full sm:flex-1 max-w-md"
           onSubmit={(e) => {
             e.preventDefault();
             load();
           }}
         >
-          <Input className="flex-1" placeholder="Tìm tài liệu..." value={search} onChange={(e) => setSearch(e.target.value)} />
-          <Button type="submit" variant="secondary">Tìm</Button>
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Tìm theo tiêu đề, tài liệu..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-3.5 py-2 text-xs font-medium border border-stone-200 dark:border-neutral-700 rounded-xl bg-stone-50/70 dark:bg-neutral-800 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:bg-white dark:focus:bg-neutral-750 dark:focus:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition"
+            />
+            <span className="absolute left-3 top-2.5 text-xs text-stone-400">🔍</span>
+          </div>
+          <Button type="submit" variant="secondary" className="text-xs font-bold">
+            Tìm
+          </Button>
         </form>
       </div>
 
@@ -189,16 +212,16 @@ const MaterialsPage = () => {
             <Card key={material._id} className="flex h-full flex-col">
               <CardBody className="flex flex-1 flex-col">
                 <div className="flex items-start gap-3">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-50 dark:bg-violet-950/60 text-violet-600 dark:text-violet-300">
                     <Icon name="materials" className="h-5 w-5" />
                   </span>
                   <div className="min-w-0">
-                    <p className="font-semibold text-slate-800">{material.title}</p>
+                    <p className="font-semibold text-stone-900 dark:text-stone-100">{material.title}</p>
                     <Badge tone="neutral" className="mt-1">{material.course?.code}</Badge>
                   </div>
                 </div>
-                {material.description && <p className="mt-2 line-clamp-2 text-sm text-slate-500">{material.description}</p>}
-                <p className="mt-2 text-xs text-slate-400">
+                {material.description && <p className="mt-2 line-clamp-2 text-sm text-stone-500 dark:text-stone-300">{material.description}</p>}
+                <p className="mt-2 text-xs text-stone-400 dark:text-stone-400">
                   {formatFileSize(material.size)} · {material.downloadCount} lượt tải · {formatRelative(material.createdAt)}
                 </p>
 

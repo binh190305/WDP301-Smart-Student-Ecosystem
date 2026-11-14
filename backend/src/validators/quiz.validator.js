@@ -1,15 +1,15 @@
 const Joi = require('joi');
 
 const questionSchema = Joi.object({
-  questionText: Joi.string().min(3).max(500).required(),
-  options: Joi.array().items(Joi.string().max(200)).min(2).max(6).required(),
+  questionText: Joi.string().min(3).max(3000).required(),
+  options: Joi.array().items(Joi.string().min(1).max(2000)).min(2).max(6).required(),
   correctIndexes: Joi.array().items(Joi.number().integer().min(0)).min(1).unique().required(),
-  explanation: Joi.string().max(1000).allow('').default(''),
+  explanation: Joi.string().max(3000).allow('').default(''),
 });
 
 const createQuizSchema = Joi.object({
-  title: Joi.string().min(3).max(200).required(),
-  course: Joi.string().hex().length(24).allow(null),
+  title: Joi.string().min(3).max(300).required(),
+  course: Joi.string().hex().length(24).allow(null, ''),
   questions: Joi.array().items(questionSchema).min(1).max(50).required(),
   isPublished: Joi.boolean(),
   timeLimitMinutes: Joi.number().integer().min(0).max(300).default(0),
@@ -19,8 +19,8 @@ const createQuizSchema = Joi.object({
 });
 
 const updateQuizSchema = Joi.object({
-  title: Joi.string().min(3).max(200),
-  course: Joi.string().hex().length(24).allow(null),
+  title: Joi.string().min(3).max(300),
+  course: Joi.string().hex().length(24).allow(null, ''),
   questions: Joi.array().items(questionSchema).min(1).max(50),
   isPublished: Joi.boolean(),
   timeLimitMinutes: Joi.number().integer().min(0).max(300),

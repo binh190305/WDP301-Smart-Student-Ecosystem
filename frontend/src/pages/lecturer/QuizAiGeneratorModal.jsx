@@ -169,22 +169,44 @@ const QuizAiGeneratorModal = ({ open, onClose, courses = [], onQuizCreated }) =>
       return toast.error('Chưa có câu hỏi nào được tạo');
     }
 
+    // Kiểm tra tính hợp lệ sơ bộ của từng câu hỏi
+    for (let i = 0; i < generatedQuestions.length; i++) {
+      const q = generatedQuestions[i];
+      if (!q.questionText || !q.questionText.trim()) {
+        return toast.error(`Câu hỏi ${i + 1} chưa có nội dung câu hỏi`);
+      }
+      const validOptions = (q.options || []).map((o) => (o || '').trim()).filter(Boolean);
+      if (validOptions.length < 2) {
+        return toast.error(`Câu hỏi ${i + 1} phải có ít nhất 2 đáp án lựa chọn`);
+      }
+      if (!q.correctIndexes || q.correctIndexes.length === 0) {
+        return toast.error(`Câu hỏi ${i + 1} chưa chọn đáp án đúng`);
+      }
+    }
+
     setSaving(true);
     try {
       const payload = {
         title: title.trim(),
-        course: course || null,
+        course: course ? course : null,
         isPublished,
         timeLimitMinutes: Number(timeLimitMinutes) || 0,
         maxAttempts: Number(maxAttempts) || 0,
         passingPercentage: Number(passingPercentage) || 50,
         shuffleQuestions: Boolean(shuffleQuestions),
-        questions: generatedQuestions.map((q) => ({
-          questionText: q.questionText.trim(),
-          options: q.options.map((o) => o.trim()),
-          correctIndexes: q.correctIndexes,
-          explanation: (q.explanation || '').trim(),
-        })),
+        questions: generatedQuestions.map((q) => {
+          const options = q.options.map((o) => (o || '').trim()).filter(Boolean);
+          let correct = (q.correctIndexes || [])
+            .map(Number)
+            .filter((idx) => !isNaN(idx) && idx >= 0 && idx < options.length);
+          if (correct.length === 0) correct = [0];
+          return {
+            questionText: q.questionText.trim(),
+            options,
+            correctIndexes: Array.from(new Set(correct)),
+            explanation: (q.explanation || '').trim(),
+          };
+        }),
       };
 
       const res = await quizApi.create(payload);
@@ -192,7 +214,8 @@ const QuizAiGeneratorModal = ({ open, onClose, courses = [], onQuizCreated }) =>
       onQuizCreated?.(res.data?.data?.quiz || res.data?.quiz);
       handleClose();
     } catch (err) {
-      toast.error(err.message || 'Không thể lưu bộ câu hỏi');
+      const detailMsg = Array.isArray(err.details) && err.details.length > 0 ? err.details.join(', ') : '';
+      toast.error(detailMsg ? `Lỗi dữ liệu: ${detailMsg}` : (err.message || 'Không thể lưu bộ câu hỏi'));
     } finally {
       setSaving(false);
     }

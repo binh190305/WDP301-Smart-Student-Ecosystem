@@ -50,6 +50,35 @@ test('Quiz Validator: xác thực tạo quiz với cài đặt mới (timer, max
   assert.equal(value.questions[0].explanation, 'MVC là viết tắt của Model, View, Controller.');
 });
 
+test('Quiz Validator: hỗ trợ câu hỏi/lựa chọn dài do AI sinh và cho phép course rỗng/null', () => {
+  const longPayload = {
+    title: 'Trắc nghiệm: lập trình pro Microservices',
+    course: '',
+    timeLimitMinutes: 15,
+    maxAttempts: 0,
+    passingPercentage: 50,
+    shuffleQuestions: false,
+    questions: [
+      {
+        questionText: 'Trong kiến trúc Microservices, khi cần cập nhật dữ liệu vào Database nghiệp vụ đồng thời phát sinh một sự kiện (Event) lên Message Broker (như Kafka/RabbitMQ) mà phải đảm bảo tính nhất quán dữ liệu (không bị hiện tượng ghi DB thành công nhưng mất message hoặc ngược lại), giải pháp kiến trúc nào là tối ưu và phổ biến nhất?',
+        options: [
+          'Sử dụng giao thức Two-Phase Commit (2PC) / XA Transactions giữa Database và Message Broker.',
+          'Áp dụng Transactional Outbox Pattern kết hợp với cơ chế Change Data Capture (CDC) hoặc Polling Publisher để đọc event từ bảng Outbox trong DB rồi gửi sang Message Broker một cách bất đồng bộ nhưng đảm bảo at-least-once delivery.',
+          'Bọc cả thao tác lưu DB và publish message vào cùng một try-catch block; nếu publish thất bại thì thực hiện DB rollback thủ công qua code ứng dụng nghiệp vụ.',
+          'Sử dụng kỹ thuật Exponential Backoff Retry trực tiếp tại tầng service khi gọi Message Broker.',
+        ],
+        correctIndexes: [1],
+        explanation: 'Transactional Outbox Pattern giải quyết triệt để bài toán Dual-Write bằng cách ghi message vào một bảng Outbox nằm trong cùng một database transaction với bảng nghiệp vụ.',
+      },
+    ],
+  };
+
+  const { error, value } = createQuizSchema.validate(longPayload);
+  assert.equal(error, undefined);
+  assert.equal(value.course, '');
+  assert.ok(value.questions[0].options[1].length > 200);
+});
+
 test('Quiz Validator: xác thực schema sinh AI quiz', () => {
   const valid = generateAiQuizSchema.validate({
     prompt: 'Lịch sử phát triển của Internet',

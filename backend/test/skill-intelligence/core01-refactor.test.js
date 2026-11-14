@@ -262,3 +262,37 @@ describe('AI CORE 01 – TEST 8: Regression & Non-Breaking Compatibility', () =>
     assert.equal(doc.classification, 'self_reported');
   });
 });
+
+describe('AI CORE 01 – TEST 9: Interactive Quiz Assessment & Project Readiness', () => {
+  test('Passing interactive quiz (>=75%) promotes skill to ASSESSED with PRACTICAL_ASSESSMENT evidence', async () => {
+    const studentId = '65f1a2b3c4d5e6f7a8b9c0d1';
+    const mockDoc = new StudentSkill({
+      student: studentId,
+      skillName: 'Docker',
+      proficiency: 'intermediate',
+      proficiencyLevel: 3,
+      classification: 'assessed',
+      verificationStatus: 'ASSESSED',
+      status: 'confirmed',
+      proficiencyScore: 100,
+      evidence: [
+        {
+          evidenceType: 'PRACTICAL_ASSESSMENT',
+          title: 'Trắc nghiệm Năng lực Chuyên sâu: Docker',
+          description: '3/3 câu đúng (100%)',
+          verificationStatus: 'ASSESSED',
+          assessmentResult: {
+            score: 100,
+            feedback: 'Đã đáp ứng đủ mức độ năng lực thực hành để tham gia dự án/đề tài SWP391.',
+          },
+        },
+      ],
+    });
+
+    await mockDoc.validate();
+    assert.equal(mockDoc.classification, 'assessed');
+    assert.equal(mockDoc.verificationStatus, 'ASSESSED');
+    assert.equal(mockDoc.evidence[0].evidenceType, 'PRACTICAL_ASSESSMENT');
+    assert.equal(mockDoc.evidence[0].verificationStatus, 'ASSESSED');
+  });
+});

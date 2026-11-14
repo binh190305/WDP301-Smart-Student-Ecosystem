@@ -146,7 +146,7 @@ const FeedPage = () => {
         }
       />
 
-      <div className="mb-5 inline-flex rounded-xl border border-slate-200 bg-white p-1">
+      <div className="mb-5 inline-flex rounded-xl border border-stone-200/80 dark:border-neutral-700 bg-stone-100 dark:bg-neutral-800/90 p-1 shadow-xs">
         {[
           { key: '', label: 'Tất cả' },
           { key: 'event', label: 'Sự kiện' },
@@ -157,8 +157,10 @@ const FeedPage = () => {
             type="button"
             onClick={() => setFilter(item.key)}
             className={cn(
-              'rounded-lg px-4 py-1.5 text-sm font-medium transition',
-              filter === item.key ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-50'
+              'rounded-lg px-4 py-1.5 text-sm font-semibold transition',
+              filter === item.key
+                ? 'bg-violet-600 dark:bg-violet-600 text-white shadow-sm'
+                : 'text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white hover:bg-stone-200/60 dark:hover:bg-neutral-700'
             )}
           >
             {item.label}
@@ -175,14 +177,14 @@ const FeedPage = () => {
           {posts.map((post) => {
             const canManage = post.author?._id === user?.id || user?.role === 'admin';
             return (
-              <Card key={post._id}>
-                <CardBody>
+              <Card key={post._id} className="hover:border-stone-300 dark:hover:border-neutral-600 transition">
+                <CardBody className="p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <Avatar name={post.author?.name} src={post.author?.avatarUrl} />
                       <div>
-                        <p className="text-sm font-semibold text-slate-800">{post.author?.name}</p>
-                        <p className="text-xs text-slate-400">{formatRelative(post.createdAt)}</p>
+                        <p className="text-sm font-bold text-stone-900 dark:text-stone-100">{post.author?.name}</p>
+                        <p className="text-xs text-stone-500 dark:text-stone-400">{formatRelative(post.createdAt)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -190,54 +192,54 @@ const FeedPage = () => {
                       {post.status === 'hidden' && <Badge tone="danger">Đã ẩn</Badge>}
                       {canManage && (
                         <>
-                          <button type="button" onClick={() => openEdit(post)} className="rounded-lg p-1 text-slate-400 transition hover:bg-brand-50 hover:text-brand-600" aria-label="Chỉnh sửa bài đăng"><Icon name="edit" className="h-4 w-4" /></button>
-                          <button type="button" onClick={() => setToDelete(post)} className="rounded-lg p-1 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600" aria-label="Xóa bài đăng"><Icon name="trash" className="h-4 w-4" /></button>
+                          <button type="button" onClick={() => openEdit(post)} className="rounded-lg p-1 text-stone-400 hover:text-violet-600 dark:hover:text-violet-400 transition hover:bg-stone-100 dark:hover:bg-neutral-800" aria-label="Chỉnh sửa bài đăng"><Icon name="edit" className="h-4 w-4" /></button>
+                          <button type="button" onClick={() => setToDelete(post)} className="rounded-lg p-1 text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 transition hover:bg-rose-50 dark:hover:bg-rose-950/40" aria-label="Xóa bài đăng"><Icon name="trash" className="h-4 w-4" /></button>
                         </>
                       )}
                     </div>
                   </div>
 
                   <button type="button" onClick={() => setDetail(post)} className="mt-3 block w-full text-left">
-                    <h3 className="text-lg font-semibold text-slate-900 transition hover:text-brand-600">{post.title}</h3>
-                    <p className="mt-1 line-clamp-3 whitespace-pre-line text-sm text-slate-600">{post.content}</p>
-                    <span className="mt-1 inline-block text-xs font-medium text-brand-600">Xem chi tiết</span>
+                    <h3 className="text-base font-bold text-stone-900 dark:text-stone-100 transition hover:text-violet-600 dark:hover:text-violet-400 leading-snug">{post.title}</h3>
+                    <p className="mt-1.5 line-clamp-3 whitespace-pre-line text-sm text-stone-600 dark:text-stone-300 leading-relaxed">{post.content}</p>
+                    <span className="mt-2 inline-block text-xs font-bold text-violet-600 dark:text-violet-400">Xem chi tiết →</span>
                   </button>
 
                   {post.eventDate && (
-                    <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-accent-600">
+                    <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
                       <Icon name="bell" className="h-4 w-4" /> {formatDateTime(post.eventDate)}
                     </p>
                   )}
 
                   {post.tagsNeeded?.length > 0 && (
                     <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                      <span className="text-xs font-semibold text-slate-500">Cần tuyển:</span>
+                      <span className="text-xs font-semibold text-stone-500 dark:text-stone-400">Cần tuyển:</span>
                       {post.tagsNeeded.map((tag) => (
                         <Badge key={tag} tone="accent">{tag}</Badge>
                       ))}
                     </div>
                   )}
 
-                  <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-                    <div className="flex gap-1">
+                  <div className="mt-4 flex items-center justify-between border-t border-stone-100 dark:border-neutral-800 pt-3">
+                    <div className="flex gap-1.5">
                       {REACTIONS.map((r) => (
                         <button
                           key={r.type}
                           type="button"
                           onClick={() => react(post, r.type)}
                           className={cn(
-                            'rounded-lg px-2 py-1 text-sm transition hover:bg-slate-100',
-                            post.myReaction === r.type && 'bg-brand-50'
+                            'rounded-xl px-2.5 py-1 text-sm transition text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-neutral-800',
+                            post.myReaction === r.type && 'bg-violet-100 dark:bg-violet-950/80 font-bold'
                           )}
                         >
                           {r.emoji}
                         </button>
                       ))}
-                      <span className="ml-1 self-center text-xs text-slate-400">{post.reactionCount} lượt cảm xúc</span>
+                      <span className="ml-1 self-center text-xs text-stone-500 dark:text-stone-400">{post.reactionCount} lượt cảm xúc</span>
                       <button
                         type="button"
                         onClick={() => setDetail(post)}
-                        className="ml-2 flex items-center gap-1 self-center text-xs text-slate-400 transition hover:text-brand-600"
+                        className="ml-2 flex items-center gap-1 self-center text-xs text-stone-500 dark:text-stone-400 transition hover:text-violet-600 dark:hover:text-violet-400"
                       >
                         <Icon name="requests" className="h-4 w-4" /> {post.commentCount || 0}
                       </button>
@@ -308,25 +310,25 @@ const FeedPage = () => {
             <div className="flex items-center gap-3">
               <Avatar name={detail.author?.name} src={detail.author?.avatarUrl} />
               <div>
-                <p className="text-sm font-semibold text-slate-800">{detail.author?.name}</p>
-                <p className="text-xs text-slate-400">{formatDateTime(detail.createdAt)}</p>
+                <p className="text-sm font-bold text-stone-900 dark:text-stone-100">{detail.author?.name}</p>
+                <p className="text-xs text-stone-500 dark:text-stone-400">{formatDateTime(detail.createdAt)}</p>
               </div>
               <Badge tone={detail.type === 'event' ? 'accent' : 'brand'} className="ml-auto">
                 {POST_TYPE_LABELS[detail.type]}
               </Badge>
             </div>
 
-            <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700">{detail.content}</p>
+            <p className="whitespace-pre-line text-sm leading-relaxed text-stone-700 dark:text-stone-200">{detail.content}</p>
 
             {detail.eventDate && (
-              <p className="flex items-center gap-1.5 text-sm font-medium text-accent-600">
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
                 <Icon name="bell" className="h-4 w-4" /> {formatDateTime(detail.eventDate)}
               </p>
             )}
 
             {detail.tagsNeeded?.length > 0 && (
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-xs font-semibold text-slate-500">Cần tuyển:</span>
+                <span className="text-xs font-semibold text-stone-500 dark:text-stone-400">Cần tuyển:</span>
                 {detail.tagsNeeded.map((tag) => (
                   <Badge key={tag} tone="accent">{tag}</Badge>
                 ))}
@@ -334,7 +336,7 @@ const FeedPage = () => {
             )}
 
             {detail.type === 'event' && user?.role === 'student' && (
-              <div className="border-t border-slate-100 pt-3">
+              <div className="border-t border-stone-100 dark:border-neutral-800 pt-3">
                 <Button size="sm" variant="accent" onClick={() => findTeammates(detail)}>
                   <Icon name="sparkles" className="h-4 w-4" /> Tìm đồng đội
                 </Button>

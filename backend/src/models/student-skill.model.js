@@ -32,7 +32,14 @@ const EVIDENCE_TYPES = [
 ];
 
 const SKILL_STATUSES = ['student_declared', 'ai_suggested', 'confirmed', 'rejected'];
-const ASSESSMENT_METHODS = ['self_reported', 'ai_extracted', 'verified', 'quiz_assessed', 'assignment_graded'];
+const ASSESSMENT_METHODS = [
+  'self_reported',
+  'ai_extracted',
+  'verified',
+  'quiz_assessed',
+  'assignment_graded',
+  'practical_assessment',
+];
 
 const competencySchema = new mongoose.Schema(
   {

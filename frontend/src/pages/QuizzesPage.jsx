@@ -95,34 +95,53 @@ const QuizzesPage = () => {
   };
 
   return (
-    <div>
-      <PageHeader
-        title={isStudent ? 'Ôn tập & Kiểm tra' : 'Quản lý Bộ câu hỏi'}
-        description="Luyện tập & kiểm tra trực tuyến với bộ câu hỏi trắc nghiệm thông minh."
-        action={
-          canManage && (
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={() => setAiModalOpen(true)} className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700 shadow-sm">
-                <Icon name="sparkles" className="mr-1.5 h-4 w-4" /> Tạo bằng AI ✨
-              </Button>
-              <Button variant="secondary" onClick={() => setImportOpen(true)}>
-                <Icon name="upload" className="mr-1 h-3.5 w-3.5" /> Nhập Excel
-              </Button>
-              <Button variant="secondary" onClick={openCreate}>
-                <Icon name="plus" className="mr-1 h-3.5 w-3.5" /> Tạo thủ công
-              </Button>
-            </div>
-          )
-        }
-      />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-50 dark:bg-violet-950/60 text-violet-600 dark:text-violet-300 text-sm font-bold">
+              ⚡
+            </span>
+            <h1 className="text-2xl font-black tracking-tight text-stone-900 dark:text-stone-100">
+              {isStudent ? 'Ôn tập & Kiểm tra' : 'Quản lý Bộ câu hỏi'}
+            </h1>
+          </div>
+          <p className="text-sm font-medium text-stone-500 dark:text-stone-300 mt-1">
+            {isStudent
+              ? 'Luyện tập câu hỏi trắc nghiệm theo từng học phần để rèn luyện kỹ năng và tự động ghi nhận điểm số.'
+              : 'Soạn đề, quản lý ngân hàng câu hỏi trắc nghiệm và theo dõi kết quả làm bài của sinh viên.'}
+          </p>
+        </div>
+        {canManage && (
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => setAiModalOpen(true)} className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700 shadow-sm text-xs font-bold">
+              <Icon name="sparkles" className="mr-1.5 h-4 w-4" /> Tạo bằng AI ✨
+            </Button>
+            <Button variant="secondary" onClick={() => setImportOpen(true)} className="text-xs font-bold">
+              <Icon name="upload" className="mr-1 h-3.5 w-3.5" /> Nhập Excel
+            </Button>
+            <Button variant="secondary" onClick={openCreate} className="text-xs font-bold">
+              <Icon name="plus" className="mr-1 h-3.5 w-3.5" /> Tạo thủ công
+            </Button>
+          </div>
+        )}
+      </div>
 
-      <div className="mb-5">
-        <Select className="sm:w-64" value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)}>
-          <option value="">Tất cả học phần</option>
-          {courses.map((course) => (
-            <option key={course._id} value={course._id}>{course.code} — {course.title}</option>
-          ))}
-        </Select>
+      {/* Filter by course */}
+      <div className="card-bento p-4 bg-white dark:bg-[#1e1e1e] border border-stone-200/80 dark:border-neutral-700/80 flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <span className="text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider">Học phần:</span>
+          <Select className="w-full sm:w-72" value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)}>
+            <option value="">Tất cả học phần</option>
+            {courses.map((course) => (
+              <option key={course._id} value={course._id}>{course.code} — {course.title}</option>
+            ))}
+          </Select>
+        </div>
+        <div className="text-xs font-semibold text-stone-500 dark:text-stone-400">
+          Tổng số: <strong className="text-stone-900 dark:text-stone-100">{quizzes.length}</strong> bộ câu hỏi
+        </div>
       </div>
 
       {loading ? (
@@ -144,10 +163,10 @@ const QuizzesPage = () => {
             const isExhausted = isStudent && quiz.maxAttempts > 0 && studentAttempts.length >= quiz.maxAttempts;
 
             return (
-              <Card key={quiz._id} className="flex h-full flex-col hover:border-slate-300 transition shadow-sm">
+              <Card key={quiz._id} className="flex h-full flex-col hover:border-violet-300 dark:hover:border-violet-700 transition shadow-sm">
                 <CardBody className="flex flex-1 flex-col">
                   <div className="flex items-start justify-between gap-2">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 dark:bg-violet-950/60 text-violet-600 dark:text-violet-300">
                       <Icon name="quiz" className="h-5 w-5" />
                     </span>
                     <div className="flex items-center gap-1.5">
@@ -164,36 +183,36 @@ const QuizzesPage = () => {
                     </div>
                   </div>
 
-                  <p className="mt-3 font-semibold text-slate-800 line-clamp-2">{quiz.title}</p>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="mt-3 font-semibold text-stone-900 dark:text-stone-100 line-clamp-2">{quiz.title}</p>
+                  <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
                     {quiz.course?.code ? `${quiz.course.code} · ` : ''}
                     {quiz.questionCount} câu hỏi · {formatRelative(quiz.createdAt)}
                   </p>
 
                   {/* Metadata tags */}
-                  <div className="mt-3 flex flex-wrap gap-1.5 text-[11px] text-slate-500">
-                    <span className="rounded bg-slate-100 px-2 py-0.5">
+                  <div className="mt-3 flex flex-wrap gap-1.5 text-[11px] text-stone-600 dark:text-stone-300">
+                    <span className="rounded bg-stone-100 dark:bg-neutral-800 border border-stone-200/50 dark:border-neutral-700 px-2 py-0.5">
                       Đạt: ≥ {quiz.passingPercentage || 50}%
                     </span>
                     {quiz.maxAttempts > 0 ? (
-                      <span className="rounded bg-slate-100 px-2 py-0.5">
+                      <span className="rounded bg-stone-100 dark:bg-neutral-800 border border-stone-200/50 dark:border-neutral-700 px-2 py-0.5">
                         Tối đa: {quiz.maxAttempts} lần
                       </span>
                     ) : (
-                      <span className="rounded bg-slate-100 px-2 py-0.5">Làm lại tự do</span>
+                      <span className="rounded bg-stone-100 dark:bg-neutral-800 border border-stone-200/50 dark:border-neutral-700 px-2 py-0.5">Làm lại tự do</span>
                     )}
                   </div>
 
                   {/* Student score preview */}
                   {isStudent && (
-                    <div className="mt-3 rounded-lg bg-slate-50 p-2 text-xs">
+                    <div className="mt-3 rounded-lg bg-stone-50 dark:bg-neutral-800/80 p-2 text-xs border border-stone-200/50 dark:border-neutral-700">
                       {studentAttempts.length > 0 ? (
                         <div className="flex justify-between items-center">
-                          <span className="text-slate-500">Đã làm: {studentAttempts.length}{quiz.maxAttempts > 0 ? `/${quiz.maxAttempts}` : ''} lần</span>
-                          <span className="font-bold text-emerald-600">Cao nhất: {Math.round((best || 0) * 100)}%</span>
+                          <span className="text-stone-500 dark:text-stone-300">Đã làm: {studentAttempts.length}{quiz.maxAttempts > 0 ? `/${quiz.maxAttempts}` : ''} lần</span>
+                          <span className="font-bold text-emerald-600 dark:text-emerald-400">Cao nhất: {Math.round((best || 0) * 100)}%</span>
                         </div>
                       ) : (
-                        <span className="text-slate-400">Chưa làm lần nào</span>
+                        <span className="text-stone-400 dark:text-stone-400">Chưa làm lần nào</span>
                       )}
                     </div>
                   )}

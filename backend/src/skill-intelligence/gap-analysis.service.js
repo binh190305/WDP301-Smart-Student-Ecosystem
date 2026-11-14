@@ -139,6 +139,12 @@ const analyzeGap = async (studentId, { targetSkills = [], projectDescription = '
         priority: target.minProficiencyLevel * targetWeight,
         reasoning: target.reasoning,
         requiredCompetencies: target.requiredCompetencies,
+        targetWeight,
+        evidenceMultiplier: 0,
+        levelRatio: 0,
+        contributionScore: 0,
+        maxPossibleScore: Number(targetWeight.toFixed(2)),
+        efficiencyPercent: 0,
       });
       continue;
     }
@@ -193,6 +199,12 @@ const analyzeGap = async (studentId, { targetSkills = [], projectDescription = '
       missingCompetencies: reqComps.filter((rc) => !demonstrated.includes(rc)),
       evidenceCount: Array.isArray(sDoc.evidence) ? sDoc.evidence.length : 0,
       reasoning: target.reasoning,
+      targetWeight,
+      evidenceMultiplier: evidenceQuality,
+      levelRatio: Math.round(levelRatio * 100),
+      contributionScore: Number(skillReadiness.toFixed(2)),
+      maxPossibleScore: Number(targetWeight.toFixed(2)),
+      efficiencyPercent: Math.round((skillReadiness / targetWeight) * 100),
     };
 
     if (studentLevel >= target.minProficiencyLevel) {
@@ -258,6 +270,8 @@ const analyzeGap = async (studentId, { targetSkills = [], projectDescription = '
       (r) => (r.skillName || r.normalizedName || '').toLowerCase() === (s.name || '').toLowerCase()
     ) || {
       course: null,
+      courseRationale: '',
+      curriculum: null,
       courses: [],
       materials: [],
       quiz: null,
@@ -269,6 +283,9 @@ const analyzeGap = async (studentId, { targetSkills = [], projectDescription = '
       skillName: s.name,
       gap: s.gap,
       priority: s.priority,
+      course: rem.course || null,
+      courseRationale: rem.courseRationale || '',
+      curriculum: rem.curriculum || null,
       recommendedCourses: rem.course ? [rem.course] : (rem.courses || []),
       recommendedMaterials: rem.materials || [],
       recommendedQuizzes: rem.quiz ? [rem.quiz] : (rem.quizzes || []),
@@ -328,6 +345,8 @@ const analyzeGap = async (studentId, { targetSkills = [], projectDescription = '
   return {
     readinessScore,
     dataCoverage,
+    totalWeights: Number(totalWeights.toFixed(2)),
+    weightedScoreSum: Number(weightedScoreSum.toFixed(2)),
     totalRequirements: parsedTarget.length,
     matchedCount: matched.length,
     partialCount: partial.length,

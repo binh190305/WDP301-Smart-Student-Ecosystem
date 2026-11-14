@@ -27,3 +27,6 @@ Thumbs.db
 
 # Model AI tải về (embedding)
 .cache/
+
+# Agent local large skills
+.agents/skills/ui-ux-pro-max/

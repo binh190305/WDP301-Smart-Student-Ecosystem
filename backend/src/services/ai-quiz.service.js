@@ -41,118 +41,90 @@ const buildUserPrompt = ({ prompt, text, questionCount = 5, difficulty = 'medium
   return content;
 };
 
-// Gọi Google Gemini API (gemini-1.5-flash / gemini-2.0-flash)
-// const generateWithGemini = async ({ prompt, text, questionCount, difficulty, customKey }) => {
-//   const apiKey = (customKey || process.env.GEMINI_API_KEY || '').trim();
-//   if (!apiKey) return null;
-
-//   // Thử model mới nhất theo khuyến nghị của Google AI Studio: gemini-3.8-flash -> gemini-2.5-flash -> gemini-1.5-flash
-//   const models = [
-//     process.env.GEMINI_MODEL,
-//     'gemini-3.8-flash',
-//     'gemini-2.5-flash',
-//     'gemini-1.5-flash',
-//   ].filter(Boolean);
-//   let lastError = null;
-
-//   const userContent = buildUserPrompt({ prompt, text, questionCount, difficulty });
-//   const body = {
-//     contents: [
-//       {
-//         role: 'user',
-//         parts: [{ text: `${SYSTEM_PROMPT}\n\n${userContent}` }],
-//       },
-//     ],
-//     generationConfig: {
-//       temperature: 0.7,
-//       responseMimeType: 'application/json',
-//     },
-//   };
-
-//   for (const model of models) {
-//     try {
-//       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-//       const res = await fetch(url, {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify(body),
-//       });
-
-//       if (!res.ok) {
-//         const errorText = await res.text();
-//         throw new Error(`${model} error ${res.status}: ${errorText}`);
-//       }
-
-//       const data = await res.json();
-//       const textOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-//       if (!textOutput) throw new Error('Gemini không trả về nội dung');
-
-//       const cleanJson = textOutput.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
-//       const parsed = JSON.parse(cleanJson);
-//       return parsed.questions || parsed;
-//     } catch (err) {
-//       lastError = err;
-//     }
-//   }
-
-//   throw new Error(`Google Gemini API thất bại: ${lastError?.message}`);
-// };
-
+// Gọi Google Gemini API (gemini-3.8-flash / gemini-3.5-flash-lite)
 const generateWithGemini = async ({ prompt, text, questionCount, difficulty, customKey }) => {
   const apiKey = (customKey || process.env.GEMINI_API_KEY || '').trim();
   if (!apiKey) return null;
 
+  // Danh sách model Google Gemini chuẩn 2026 khuyến nghị bởi Google AI Studio
   const models = [
     process.env.GEMINI_MODEL,
     'gemini-3.8-flash',
     'gemini-3.5-flash-lite',
+    'gemini-3.5-flash',
   ].filter(Boolean);
 
   const userContent = buildUserPrompt({ prompt, text, questionCount, difficulty });
-  const body = {
-    systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-    contents: [{ role: 'user', parts: [{ text: userContent }] }],
-    generationConfig: {
+  const errors = [];
+
+  const fetchModel = async (model, disableThinking = true) => {
+    const genConfig = {
       temperature: 0.7,
       responseMimeType: 'application/json',
-    },
-  };
+    };
+    // Tắt thinkingBudget (đặt = 0) để model phản hồi siêu tốc trong vài giây thay vì suy nghĩ nhiều phút
+    if (disableThinking) {
+      genConfig.thinkingConfig = { thinkingBudget: 0 };
+    }
 
-  const errors = [];
+    const reqBody = {
+      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      contents: [{ role: 'user', parts: [{ text: userContent }] }],
+      generationConfig: genConfig,
+    };
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 45000);
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
+      },
+      body: JSON.stringify(reqBody),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      // Nếu model không hỗ trợ trường thinkingConfig, tự động fallback gọi lại không kèm thinkingConfig
+      if (res.status === 400 && disableThinking && errorText.includes('thinking')) {
+        return fetchModel(model, false);
+      }
+      const err = new Error(`${model} error ${res.status}: ${errorText}`);
+      err.status = res.status;
+      throw err;
+    }
+
+    const data = await res.json();
+    const parts = data?.candidates?.[0]?.content?.parts || [];
+    // Lọc bỏ phần suy nghĩ nội bộ (thought: true), chỉ lấy nội dung JSON câu hỏi thực tế
+    const answerParts = parts.filter((p) => !p.thought);
+    const textOutput = (answerParts.length ? answerParts : parts)
+      .map((p) => p.text || '')
+      .join('')
+      .trim();
+    if (!textOutput) throw new Error(`${model}: Gemini không trả về nội dung`);
+
+    const cleanJson = textOutput.replace(/```(?:json)?/gi, '').trim();
+    const parsed = JSON.parse(cleanJson);
+    return parsed.questions || parsed;
+  };
 
   for (const model of models) {
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': apiKey,
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        const err = new Error(`${model} error ${res.status}: ${errorText}`);
-        err.status = res.status;
-        throw err;
-      }
-
-      const data = await res.json();
-      const parts = data?.candidates?.[0]?.content?.parts || [];
-      const textOutput = parts.map((p) => p.text || '').join('').trim();
-      if (!textOutput) throw new Error(`${model}: Gemini không trả về nội dung`);
-
-      const cleanJson = textOutput.replace(/```(?:json)?/gi, '').trim();
-      const parsed = JSON.parse(cleanJson);
-      return parsed.questions || parsed;
+      return await fetchModel(model, true);
     } catch (err) {
-      errors.push(err.message);
-      console.error('[Gemini]', err.message);
+      const errMsg = err.name === 'AbortError' ? `${model} quá thời gian phản hồi (timeout 45s)` : err.message;
+      errors.push(errMsg);
+      console.error('[Gemini]', errMsg);
 
-      // Key sai / request sai: thử model khác cũng vô ích
-      if (err.status === 400 || err.status === 401 || err.status === 403) break;
+      // Key sai / không có quyền: dừng ngay không thử model khác
+      if (err.status === 401 || err.status === 403) break;
     }
   }
 
@@ -295,19 +267,26 @@ const generateQuizQuestions = async ({ prompt, text, questionCount = 5, difficul
 
 const sanitizeQuestions = (questions, count) => {
   return questions.slice(0, count).map((q, idx) => {
-    const questionText = String(q.questionText || `Câu hỏi số ${idx + 1}`).trim();
-    const options =
-      Array.isArray(q.options) && q.options.length >= 2
-        ? q.options.map((o) => String(o).trim())
-        : ['Lựa chọn A', 'Lựa chọn B', 'Lựa chọn C', 'Lựa chọn D'];
+    let questionText = String(q.questionText || `Câu hỏi số ${idx + 1}`).trim();
+    if (questionText.length > 3000) questionText = questionText.slice(0, 3000);
+
+    let options = Array.isArray(q.options)
+      ? q.options.map((o) => String(o || '').trim()).filter(Boolean)
+      : [];
+    if (options.length < 2) {
+      options = ['Lựa chọn A', 'Lựa chọn B', 'Lựa chọn C', 'Lựa chọn D'];
+    }
+    options = options.slice(0, 6).map((opt) => (opt.length > 2000 ? opt.slice(0, 2000) : opt));
 
     let correctIndexes =
       Array.isArray(q.correctIndexes) && q.correctIndexes.length > 0
         ? q.correctIndexes.map(Number).filter((n) => !isNaN(n) && n >= 0 && n < options.length)
         : [0];
     if (correctIndexes.length === 0) correctIndexes = [0];
+    correctIndexes = Array.from(new Set(correctIndexes));
 
-    const explanation = String(q.explanation || 'Đáp án chính xác theo kiến thức bài học.').trim();
+    let explanation = String(q.explanation || 'Đáp án chính xác theo kiến thức bài học.').trim();
+    if (explanation.length > 3000) explanation = explanation.slice(0, 3000);
 
     return {
       questionText,

@@ -22,6 +22,77 @@ import { downloadProtectedFile } from '../utils/download';
 
 const emptyForm = { title: '', content: '', order: 0, materials: [], quiz: '' };
 
+const MarkdownContent = ({ content }) => {
+  if (!content) return null;
+
+  const lines = content.split('\n');
+  const elements = [];
+  let inCodeBlock = false;
+  let codeBuffer = [];
+
+  lines.forEach((line, i) => {
+    if (line.startsWith('```')) {
+      if (inCodeBlock) {
+        elements.push(
+          <div key={`code-${i}`} className="my-3 rounded-xl bg-slate-900 text-slate-100 p-4 font-mono text-xs overflow-x-auto border border-slate-800 shadow-inner">
+            <pre className="whitespace-pre">{codeBuffer.join('\n')}</pre>
+          </div>
+        );
+        codeBuffer = [];
+        inCodeBlock = false;
+      } else {
+        inCodeBlock = true;
+      }
+      return;
+    }
+
+    if (inCodeBlock) {
+      codeBuffer.push(line);
+      return;
+    }
+
+    const trimmed = line.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    if (trimmed.startsWith('### ')) {
+      elements.push(
+        <h4 key={i} className="text-sm font-black text-violet-700 dark:text-violet-400 mt-4 mb-2 flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-violet-600"></span>
+          {trimmed.replace('### ', '')}
+        </h4>
+      );
+    } else if (trimmed.startsWith('#### ')) {
+      elements.push(
+        <h5 key={i} className="text-xs font-bold text-stone-900 dark:text-stone-200 mt-3 mb-1.5">
+          {trimmed.replace('#### ', '')}
+        </h5>
+      );
+    } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      elements.push(
+        <li key={i} className="text-xs text-stone-800 dark:text-stone-200 ml-4 list-disc mb-1 leading-relaxed">
+          {trimmed.slice(2)}
+        </li>
+      );
+    } else if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+      elements.push(
+        <div key={i} className="text-[11px] font-mono text-stone-800 dark:text-stone-300 py-0.5 bg-stone-100/60 dark:bg-neutral-800/60 px-2 rounded">
+          {trimmed}
+        </div>
+      );
+    } else {
+      elements.push(
+        <p key={i} className="text-xs text-stone-800 dark:text-stone-200 mb-2 leading-relaxed font-normal">
+          {trimmed}
+        </p>
+      );
+    }
+  });
+
+  return <div className="space-y-1">{elements}</div>;
+};
+
 const CourseLessonsPage = () => {
   const { id } = useParams();
   const { user } = useAuth();
@@ -191,13 +262,13 @@ const CourseLessonsPage = () => {
         <Card className="mb-5">
           <CardBody>
             <div className="mb-2 flex items-center justify-between text-sm">
-              <span className="font-medium text-slate-700">Tiến độ học tập</span>
-              <span className="font-semibold text-brand-600">
+              <span className="font-medium text-stone-700 dark:text-stone-300">Tiến độ học tập</span>
+              <span className="font-semibold text-brand-600 dark:text-brand-400">
                 {completedCount}/{lessons.length} bài · {percent}%
               </span>
             </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
-              <div className="h-full rounded-full bg-brand-500 transition-all" style={{ width: `${percent}%` }} />
+            <div className="h-2.5 overflow-hidden rounded-full bg-stone-100 dark:bg-neutral-700">
+              <div className="h-full rounded-full bg-gradient-to-r from-violet-600 to-purple-600 transition-all" style={{ width: `${percent}%` }} />
             </div>
           </CardBody>
         </Card>
@@ -209,93 +280,152 @@ const CourseLessonsPage = () => {
           description={canManage ? 'Bấm “Thêm bài học” để xây dựng nội dung học phần.' : 'Giảng viên chưa đăng nội dung.'}
         />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {lessons.map((lesson, index) => (
-            <Card key={lesson._id}>
-              <CardBody>
-                <div className="flex items-start gap-3">
-                  {isStudent && (
-                    <button
-                      type="button"
-                      disabled={busyId === lesson._id}
-                      onClick={() => toggleComplete(lesson)}
-                      className={
-                        'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition ' +
-                        (lesson.completed
-                          ? 'border-emerald-500 bg-emerald-500 text-white'
-                          : 'border-slate-300 text-transparent hover:border-brand-400')
-                      }
-                      title={lesson.completed ? 'Bỏ đánh dấu hoàn thành' : 'Đánh dấu hoàn thành'}
-                    >
-                      <Icon name="check" className="h-3.5 w-3.5" />
-                    </button>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <button
-                      type="button"
-                      onClick={() => setExpanded(expanded === lesson._id ? null : lesson._id)}
-                      className="block w-full text-left"
-                    >
-                      <p className="font-semibold text-slate-800">
-                        <span className="mr-2 text-slate-400">Bài {index + 1}.</span>
-                        {lesson.title}
-                      </p>
-                    </button>
+            <div
+              key={lesson._id}
+              className="card-bento p-5 border border-stone-200/90 dark:border-neutral-800 bg-white dark:bg-[#1e1e1e] transition-all hover:border-violet-300 dark:hover:border-violet-700 shadow-sm"
+            >
+              <div className="flex items-start gap-3.5">
+                {isStudent && (
+                  <button
+                    type="button"
+                    disabled={busyId === lesson._id}
+                    onClick={() => toggleComplete(lesson)}
+                    className={
+                      'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition ' +
+                      (lesson.completed
+                        ? 'border-emerald-500 bg-emerald-500 text-white shadow-xs'
+                        : 'border-stone-300 dark:border-neutral-600 text-transparent hover:border-violet-500')
+                    }
+                    title={lesson.completed ? 'Bỏ đánh dấu hoàn thành' : 'Đánh dấu hoàn thành'}
+                  >
+                    <Icon name="check" className="h-3.5 w-3.5" />
+                  </button>
+                )}
 
-                    {expanded === lesson._id && (
-                      <div className="mt-3 space-y-3">
-                        {lesson.content && (
-                          <p className="whitespace-pre-line text-sm text-slate-600">{lesson.content}</p>
-                        )}
-                        {lesson.materials?.length > 0 && (
-                          <div className="space-y-1.5">
-                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Tài liệu đính kèm</p>
+                <div className="min-w-0 flex-1">
+                  <button
+                    type="button"
+                    onClick={() => setExpanded(expanded === lesson._id ? null : lesson._id)}
+                    className="flex w-full items-center justify-between text-left group"
+                  >
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="px-2.5 py-0.5 rounded-lg bg-violet-50 dark:bg-violet-950/80 text-violet-700 dark:text-violet-300 text-xs font-black border border-violet-200/60 dark:border-violet-800">
+                        Bài {index + 1}
+                      </span>
+                      <h3 className="font-bold text-sm text-stone-900 dark:text-stone-100 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition">
+                        {lesson.title}
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 ml-2">
+                      {lesson.completed && (
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/70 dark:text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-800">
+                          ✓ Đã xong
+                        </span>
+                      )}
+                      <span className={`text-xs text-stone-400 dark:text-stone-500 transition-transform duration-200 ${expanded === lesson._id ? 'rotate-180' : ''}`}>
+                        ▼
+                      </span>
+                    </div>
+                  </button>
+
+                  {/* Expanded Lesson View */}
+                  {expanded === lesson._id && (
+                    <div className="mt-4 pt-4 border-t border-stone-100 dark:border-neutral-800 space-y-5 animate-fade-in">
+                      {/* 1. Core Learning Content / Theory */}
+                      <div className="bg-stone-50/70 dark:bg-neutral-800/40 p-4 rounded-2xl border border-stone-100 dark:border-neutral-800/80">
+                        <MarkdownContent content={lesson.content} />
+                      </div>
+
+                      {/* 2. Downloadable Materials & Slides */}
+                      {lesson.materials?.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs font-black uppercase tracking-wider text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
+                            <span>📁</span> Tài liệu & Slide đính kèm ({lesson.materials.length}):
+                          </p>
+                          <div className="grid gap-2 sm:grid-cols-2">
                             {lesson.materials.map((material) => (
-                              <button
+                              <div
                                 key={material._id}
-                                type="button"
-                                 onClick={() => downloadMaterial(material)}
-                                 disabled={downloadingId === material._id}
-                                className="flex items-center gap-2 text-sm font-medium text-brand-600 hover:underline"
+                                className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-neutral-800 border border-stone-200/80 dark:border-neutral-700 hover:border-violet-400 dark:hover:border-violet-500 transition shadow-xs"
                               >
-                                <Icon name="materials" className="h-4 w-4" /> {material.title}
-                              </button>
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-50 dark:bg-violet-950 text-violet-600 dark:text-violet-400 font-bold text-sm">
+                                    📄
+                                  </span>
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-bold text-stone-800 dark:text-stone-200 truncate" title={material.title}>
+                                      {material.title}
+                                    </p>
+                                    <span className="text-[10px] text-stone-400 dark:text-stone-500">
+                                      {material.size ? `${(material.size / 1024 / 1024).toFixed(1)} MB` : 'Tài liệu'}
+                                    </span>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => downloadMaterial(material)}
+                                  disabled={downloadingId === material._id}
+                                  className="ml-2 px-2.5 py-1 rounded-lg bg-violet-50 hover:bg-violet-100 dark:bg-violet-900/50 dark:hover:bg-violet-900 text-[11px] font-bold text-violet-700 dark:text-violet-300 shrink-0 transition"
+                                >
+                                  {downloadingId === material._id ? '⏳ Tải...' : '⬇ Tải về'}
+                                </button>
+                              </div>
                             ))}
                           </div>
-                        )}
-                        {lesson.quiz && (
+                        </div>
+                      )}
+
+                      {/* 3. Quiz Link Card */}
+                      {lesson.quiz && (
+                        <div className="p-4 rounded-2xl bg-gradient-to-r from-violet-50 via-purple-50 to-amber-50/50 dark:from-violet-950/40 dark:via-purple-950/30 dark:to-neutral-900 border border-violet-200/70 dark:border-violet-800/60 flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white font-bold text-base shadow-sm">
+                              ✍️
+                            </span>
+                            <div>
+                              <p className="text-xs font-bold text-stone-900 dark:text-stone-100">
+                                {lesson.quiz.title}
+                              </p>
+                              <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                                Bài trắc nghiệm ôn tập và củng cố kiến thức cuối chương
+                              </p>
+                            </div>
+                          </div>
                           <Link
                             to={`/app/quizzes/${lesson.quiz._id}`}
-                            className="inline-flex items-center gap-2 text-sm font-medium text-brand-600 hover:underline"
+                            className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shrink-0 transition shadow-sm flex items-center gap-1.5"
                           >
-                            <Icon name="quiz" className="h-4 w-4" /> Làm trắc nghiệm: {lesson.quiz.title}
+                            <span>Làm Quiz ngay</span>
+                            <span>➔</span>
                           </Link>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  {lesson.completed && <Badge tone="success">Hoàn thành</Badge>}
-                  {canManage && (
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => openEdit(lesson)}
-                        className="rounded-lg p-1.5 text-slate-400 transition hover:bg-brand-50 hover:text-brand-600"
-                      >
-                        <Icon name="edit" className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setToDelete(lesson)}
-                        className="rounded-lg p-1.5 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
-                      >
-                        <Icon name="trash" className="h-4 w-4" />
-                      </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              </CardBody>
-            </Card>
+
+                {canManage && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => openEdit(lesson)}
+                      className="rounded-lg p-1.5 text-slate-400 transition hover:bg-brand-50 hover:text-brand-600"
+                    >
+                      <Icon name="edit" className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setToDelete(lesson)}
+                      className="rounded-lg p-1.5 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                    >
+                      <Icon name="trash" className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           ))}
         </div>
       )}

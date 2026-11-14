@@ -197,21 +197,21 @@ function NodeDetailPanel({ node, onClose, onExplore, allNodes, allEdges }) {
   );
 
   return (
-    <div className="bg-white/95 backdrop-blur-xl border border-gray-200/90 rounded-3xl p-5 shadow-2xl space-y-4 animate-fadeIn transition-all">
+    <div className="bg-white/95 dark:bg-[#1e1e1e] backdrop-blur-xl border border-stone-200/90 dark:border-neutral-700/80 rounded-3xl p-5 shadow-2xl space-y-4 animate-fadeIn transition-all">
       {/* Header */}
-      <div className="flex items-start justify-between gap-3 border-b border-gray-100 pb-3">
+      <div className="flex items-start justify-between gap-3 border-b border-stone-100 dark:border-neutral-800 pb-3">
         <div className="flex items-center gap-3">
           <div
             className="w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-md text-xl"
             style={{
-              backgroundColor: node.type === 'student' ? '#4f46e5' : theme.color,
-              boxShadow: `0 6px 16px ${node.type === 'student' ? 'rgba(79,70,229,0.35)' : 'rgba(59,130,246,0.3)'}`,
+              backgroundColor: node.type === 'student' ? '#7c3aed' : theme.color,
+              boxShadow: `0 6px 16px ${node.type === 'student' ? 'rgba(124,58,237,0.35)' : 'rgba(59,130,246,0.3)'}`,
             }}
           >
             {node.type === 'student' ? '👤' : theme.icon}
           </div>
           <div>
-            <h3 className="font-extrabold text-gray-900 text-base flex items-center gap-1.5">
+            <h3 className="font-extrabold text-stone-900 dark:text-stone-100 text-base flex items-center gap-1.5">
               <span>{node.label}</span>
               {node.status === 'confirmed' && (
                 <span className="text-emerald-500 text-xs" title="Đã xác thực">✓</span>
@@ -225,7 +225,7 @@ function NodeDetailPanel({ node, onClose, onExplore, allNodes, allEdges }) {
                 {theme.name}
               </span>
               {node.proficiencyLevel && (
-                <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
+                <span className="text-[11px] font-bold text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/70 border border-violet-200 dark:border-violet-800 px-2 py-0.5 rounded-full">
                   Cấp độ {node.proficiencyLevel}/5
                 </span>
               )}
@@ -234,7 +234,7 @@ function NodeDetailPanel({ node, onClose, onExplore, allNodes, allEdges }) {
         </div>
         <button
           onClick={onClose}
-          className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 flex items-center justify-center font-bold text-xs transition"
+          className="w-7 h-7 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-100 flex items-center justify-center font-bold text-xs transition"
           title="Đóng panel"
         >
           ✕
@@ -246,12 +246,12 @@ function NodeDetailPanel({ node, onClose, onExplore, allNodes, allEdges }) {
           {/* Level Progress Indicator */}
           <div className="space-y-1.5 pt-1">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-500 font-medium">Trình độ thành thạo:</span>
-              <span className="font-bold text-gray-900">
+              <span className="text-stone-500 dark:text-stone-400 font-medium">Trình độ thành thạo:</span>
+              <span className="font-bold text-stone-900 dark:text-stone-100">
                 {PROFICIENCY_LEVEL_NAMES[level]} ({levelPercent}%)
               </span>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden p-0.5">
+            <div className="w-full bg-stone-100 dark:bg-neutral-800 rounded-full h-2.5 overflow-hidden p-0.5">
               <div
                 className="h-full rounded-full transition-all duration-700 shadow-sm"
                 style={{
@@ -264,33 +264,33 @@ function NodeDetailPanel({ node, onClose, onExplore, allNodes, allEdges }) {
 
           {/* Quick Metrics */}
           <div className="grid grid-cols-2 gap-2 text-xs pt-1">
-            <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-100">
-              <span className="text-gray-400 block text-[10px] font-semibold uppercase">Trạng thái</span>
-              <span className="font-bold text-emerald-600 flex items-center gap-1 mt-0.5">
+            <div className="bg-stone-50 dark:bg-neutral-800/80 p-2.5 rounded-xl border border-stone-100 dark:border-neutral-700">
+              <span className="text-stone-400 dark:text-stone-500 block text-[10px] font-semibold uppercase">Trạng thái</span>
+              <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-0.5">
                 <span>✓</span>
                 <span>{node.status === 'confirmed' ? 'Đã xác thực' : 'Tự khai báo'}</span>
               </span>
             </div>
-            <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-100">
-              <span className="text-gray-400 block text-[10px] font-semibold uppercase">Độ tin cậy</span>
-              <span className="font-bold text-indigo-600 mt-0.5 block">
+            <div className="bg-stone-50 dark:bg-neutral-800/80 p-2.5 rounded-xl border border-stone-100 dark:border-neutral-700">
+              <span className="text-stone-400 dark:text-stone-500 block text-[10px] font-semibold uppercase">Độ tin cậy</span>
+              <span className="font-bold text-violet-600 dark:text-violet-400 mt-0.5 block">
                 {Math.round((node.confidence || 0.95) * 100)}%
               </span>
             </div>
           </div>
 
           {/* Relationships Explorer */}
-          <div className="space-y-3 pt-2 border-t border-gray-100">
+          <div className="space-y-3 pt-2 border-t border-stone-100 dark:border-neutral-800">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-gray-800 uppercase tracking-wider">
+              <span className="text-xs font-bold text-stone-800 dark:text-stone-200 uppercase tracking-wider">
                 Mối quan hệ tri thức
               </span>
-              {loadingR && <span className="text-[11px] text-indigo-600 animate-spin">⏳</span>}
+              {loadingR && <span className="text-[11px] text-violet-600 animate-spin">⏳</span>}
             </div>
 
             {/* Prerequisites */}
             <div>
-              <span className="text-[11px] font-bold text-rose-600 flex items-center gap-1 mb-1.5">
+              <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1 mb-1.5">
                 <span>🔴</span>
                 <span>Điều kiện Tiên quyết (Cần học trước):</span>
               </span>
@@ -303,7 +303,7 @@ function NodeDetailPanel({ node, onClose, onExplore, allNodes, allEdges }) {
                       <button
                         key={idx}
                         onClick={() => targetNode && onExplore(targetNode)}
-                        className="text-xs bg-rose-50 border border-rose-200 text-rose-700 font-semibold px-2.5 py-1 rounded-xl hover:bg-rose-100 transition shadow-2xs flex items-center gap-1"
+                        className="text-xs bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-300 font-semibold px-2.5 py-1 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-900/80 transition shadow-2xs flex items-center gap-1"
                       >
                         <span>{label}</span>
                         {targetNode && <span className="text-[10px] opacity-75">Lv.{targetNode.proficiencyLevel}</span>}
@@ -312,7 +312,7 @@ function NodeDetailPanel({ node, onClose, onExplore, allNodes, allEdges }) {
                   })}
                 </div>
               ) : (
-                <p className="text-[11px] text-emerald-600 italic">
+                <p className="text-[11px] text-emerald-600 dark:text-emerald-400 italic">
                   ✓ Kỹ năng nền tảng cơ sở – không yêu cầu môn tiên quyết.
                 </p>
               )}
@@ -321,7 +321,7 @@ function NodeDetailPanel({ node, onClose, onExplore, allNodes, allEdges }) {
             {/* Unlocks / Next steps */}
             {outgoingUnlocks.length > 0 && (
               <div>
-                <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mb-1.5">
+                <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mb-1.5">
                   <span>🟢</span>
                   <span>Mở khóa các kỹ năng nâng cao tiếp theo:</span>
                 </span>
@@ -332,7 +332,7 @@ function NodeDetailPanel({ node, onClose, onExplore, allNodes, allEdges }) {
                       <button
                         key={idx}
                         onClick={() => targetNode && onExplore(targetNode)}
-                        className="text-xs bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold px-2.5 py-1 rounded-xl hover:bg-emerald-100 transition shadow-2xs"
+                        className="text-xs bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-semibold px-2.5 py-1 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/80 transition shadow-2xs"
                       >
                         {targetNode?.label || 'Kỹ năng'} →
                       </button>
@@ -345,7 +345,7 @@ function NodeDetailPanel({ node, onClose, onExplore, allNodes, allEdges }) {
             {/* Complementary */}
             {(related.length > 0 || complementarySkills.length > 0) && (
               <div>
-                <span className="text-[11px] font-bold text-indigo-600 flex items-center gap-1 mb-1.5">
+                <span className="text-[11px] font-bold text-violet-600 dark:text-violet-400 flex items-center gap-1 mb-1.5">
                   <span>🟣</span>
                   <span>Kỹ năng Bổ trợ & Hợp lực tốt nhất:</span>
                 </span>
@@ -357,7 +357,7 @@ function NodeDetailPanel({ node, onClose, onExplore, allNodes, allEdges }) {
                       <button
                         key={idx}
                         onClick={() => targetNode && onExplore(targetNode)}
-                        className="text-xs bg-indigo-50 border border-indigo-200 text-indigo-700 font-semibold px-2.5 py-1 rounded-xl hover:bg-indigo-100 transition shadow-2xs"
+                        className="text-xs bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-900/60 text-violet-700 dark:text-violet-300 font-semibold px-2.5 py-1 rounded-xl hover:bg-violet-100 dark:hover:bg-violet-900/80 transition shadow-2xs"
                       >
                         {label}
                       </button>
@@ -369,17 +369,17 @@ function NodeDetailPanel({ node, onClose, onExplore, allNodes, allEdges }) {
           </div>
 
           {/* Action CTAs */}
-          <div className="pt-2 border-t border-gray-100 space-y-2">
+          <div className="pt-2 border-t border-stone-100 dark:border-neutral-800 space-y-2">
             <Link
               to="/app/skill-intelligence/analyze"
-              className="w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow-xs flex items-center justify-center gap-2"
+              className="w-full text-center bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow-xs flex items-center justify-center gap-2"
             >
               <span>⚡</span>
               <span>Phân tích khoảng cách & lộ trình học</span>
             </Link>
             <Link
               to="/app/quizzes"
-              className="w-full text-center bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 font-bold text-xs py-2 px-3 rounded-xl transition flex items-center justify-center gap-1.5"
+              className="w-full text-center bg-stone-50 dark:bg-neutral-800 hover:bg-stone-100 dark:hover:bg-neutral-700 border border-stone-200 dark:border-neutral-700 text-stone-700 dark:text-stone-200 font-bold text-xs py-2 px-3 rounded-xl transition flex items-center justify-center gap-1.5"
             >
               <span>🎯</span>
               <span>Làm bài kiểm tra đánh giá năng lực</span>
@@ -418,7 +418,7 @@ export default function KnowledgeGraphPage() {
   const [hoveredNode, setHoveredNode] = useState(null);
   const [filterCategory, setFilterCategory] = useState('ALL');
   const [filterLevel, setFilterLevel] = useState('ALL');
-  const [showCenterLines, setShowCenterLines] = useState(false);
+  const [showCenterLines, setShowCenterLines] = useState(true);
   const [showClusterBounds, setShowClusterBounds] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState('graph'); // 'graph' | 'roadmap' | 'cards'
@@ -757,16 +757,16 @@ export default function KnowledgeGraphPage() {
       `}</style>
 
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#1e1e1e] p-6 rounded-3xl border border-stone-200/80 dark:border-neutral-700/80 shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-2xl shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-violet-50 dark:bg-neutral-800 border border-violet-100 dark:border-neutral-700 flex items-center justify-center text-2xl shadow-xs">
             🌐
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+            <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
               Đồ thị Kỹ năng & Vũ trụ Tri thức Thông minh
             </h1>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
               Bản đồ năng lực tương tác SaaS 2026: Phân cụm chuyên môn, chuỗi tiên quyết và kéo thả trực quan.
             </p>
           </div>
@@ -775,14 +775,14 @@ export default function KnowledgeGraphPage() {
         <div className="flex items-center gap-2.5 shrink-0">
           <Link
             to="/app/skill-intelligence/analyze"
-            className="text-xs bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 font-bold px-3.5 py-2.5 rounded-2xl transition flex items-center gap-1.5 shadow-xs"
+            className="text-xs bg-violet-50 dark:bg-violet-950/70 hover:bg-violet-100 dark:hover:bg-violet-900/60 border border-violet-200/80 dark:border-violet-800 text-violet-700 dark:text-violet-300 font-bold px-3.5 py-2.5 rounded-2xl transition flex items-center gap-1.5 shadow-xs"
           >
             <span>⚡</span>
             <span>Phân tích & Khoảng cách Kỹ năng</span>
           </Link>
           <Link
             to="/app/skill-intelligence/profile"
-            className="text-xs bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 font-semibold px-3.5 py-2.5 rounded-2xl transition flex items-center gap-1.5"
+            className="text-xs bg-stone-50 dark:bg-neutral-800 hover:bg-stone-100 dark:hover:bg-neutral-700 border border-stone-200 dark:border-neutral-700 text-stone-700 dark:text-stone-200 font-semibold px-3.5 py-2.5 rounded-2xl transition flex items-center gap-1.5"
           >
             <span>👤</span>
             <span>Hồ sơ Kỹ năng</span>
@@ -798,21 +798,21 @@ export default function KnowledgeGraphPage() {
 
       {/* Stats Quick Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white border border-gray-200/80 rounded-2xl p-4 shadow-xs text-center">
-          <p className="text-3xl font-extrabold text-indigo-600">{skillCount}</p>
-          <p className="text-xs text-gray-500 font-medium mt-0.5">Kỹ năng đã tích lũy</p>
+        <div className="bg-white dark:bg-[#1e1e1e] border border-stone-200/80 dark:border-neutral-700/80 rounded-2xl p-4 shadow-xs text-center">
+          <p className="text-3xl font-extrabold text-violet-600 dark:text-violet-400">{skillCount}</p>
+          <p className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5">Kỹ năng đã tích lũy</p>
         </div>
-        <div className="bg-white border border-gray-200/80 rounded-2xl p-4 shadow-xs text-center">
-          <p className="text-3xl font-extrabold text-emerald-600">{relCount}</p>
-          <p className="text-xs text-gray-500 font-medium mt-0.5">Liên kết tri thức</p>
+        <div className="bg-white dark:bg-[#1e1e1e] border border-stone-200/80 dark:border-neutral-700/80 rounded-2xl p-4 shadow-xs text-center">
+          <p className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">{relCount}</p>
+          <p className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5">Liên kết tri thức</p>
         </div>
-        <div className="bg-white border border-gray-200/80 rounded-2xl p-4 shadow-xs text-center">
-          <p className="text-3xl font-extrabold text-amber-600">{allCategories.length}</p>
-          <p className="text-xs text-gray-500 font-medium mt-0.5">Cụm lĩnh vực chuyên môn</p>
+        <div className="bg-white dark:bg-[#1e1e1e] border border-stone-200/80 dark:border-neutral-700/80 rounded-2xl p-4 shadow-xs text-center">
+          <p className="text-3xl font-extrabold text-amber-600 dark:text-amber-400">{allCategories.length}</p>
+          <p className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5">Cụm lĩnh vực chuyên môn</p>
         </div>
-        <div className="bg-white border border-gray-200/80 rounded-2xl p-4 shadow-xs text-center">
-          <p className="text-3xl font-extrabold text-purple-600">{expertCount}</p>
-          <p className="text-xs text-gray-500 font-medium mt-0.5">Kỹ năng chuyên sâu (Lv.4-5)</p>
+        <div className="bg-white dark:bg-[#1e1e1e] border border-stone-200/80 dark:border-neutral-700/80 rounded-2xl p-4 shadow-xs text-center">
+          <p className="text-3xl font-extrabold text-purple-600 dark:text-purple-400">{expertCount}</p>
+          <p className="text-xs text-stone-500 dark:text-stone-400 font-medium mt-0.5">Kỹ năng chuyên sâu (Lv.4-5)</p>
         </div>
       </div>
 
@@ -821,15 +821,15 @@ export default function KnowledgeGraphPage() {
         {/* Left Column: Canvas / Roadmap / Matrix */}
         <div className="flex-1 w-full space-y-4">
           {/* Controls Bar */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-3.5 shadow-xs flex flex-wrap items-center justify-between gap-3">
+          <div className="bg-white dark:bg-[#1e1e1e] border border-stone-200/80 dark:border-neutral-700/80 rounded-2xl p-3.5 shadow-xs flex flex-wrap items-center justify-between gap-3">
             {/* Category Filter Pills */}
             <div className="flex flex-wrap items-center gap-1.5">
               <button
                 onClick={() => setFilterCategory('ALL')}
                 className={`text-xs px-3.5 py-1.5 rounded-full font-bold transition shadow-2xs ${
                   filterCategory === 'ALL'
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-stone-900 dark:bg-neutral-700 text-white'
+                    : 'bg-stone-100 dark:bg-neutral-800 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-neutral-700'
                 }`}
               >
                 Tất cả ({skillCount})
@@ -847,7 +847,7 @@ export default function KnowledgeGraphPage() {
                     className={`text-xs px-3 py-1.5 rounded-full font-bold flex items-center gap-1.5 transition ${
                       active
                         ? 'text-white shadow-xs'
-                        : 'text-gray-700 bg-gray-50 border border-gray-200 hover:bg-gray-100'
+                        : 'text-stone-700 dark:text-stone-300 bg-stone-50 dark:bg-neutral-800/80 border border-stone-200 dark:border-neutral-700 hover:bg-stone-100 dark:hover:bg-neutral-700'
                     }`}
                     style={{ backgroundColor: active ? theme.color : undefined }}
                   >
@@ -860,11 +860,11 @@ export default function KnowledgeGraphPage() {
 
             {/* View Mode Switcher */}
             <div className="flex items-center gap-2">
-              <div className="flex items-center bg-gray-100 p-0.5 rounded-xl border border-gray-200 text-xs">
+              <div className="flex items-center bg-stone-100 dark:bg-neutral-800 p-0.5 rounded-xl border border-stone-200 dark:border-neutral-700 text-xs">
                 <button
                   onClick={() => setViewMode('graph')}
                   className={`px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 ${
-                    viewMode === 'graph' ? 'bg-white shadow-xs text-indigo-700' : 'text-gray-500 hover:text-gray-900'
+                    viewMode === 'graph' ? 'bg-white dark:bg-neutral-700 shadow-xs text-violet-700 dark:text-violet-300' : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white'
                   }`}
                 >
                   <span>🪐</span>
@@ -873,7 +873,7 @@ export default function KnowledgeGraphPage() {
                 <button
                   onClick={() => setViewMode('roadmap')}
                   className={`px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 ${
-                    viewMode === 'roadmap' ? 'bg-white shadow-xs text-indigo-700' : 'text-gray-500 hover:text-gray-900'
+                    viewMode === 'roadmap' ? 'bg-white dark:bg-neutral-700 shadow-xs text-violet-700 dark:text-violet-300' : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white'
                   }`}
                 >
                   <span>🌳</span>
@@ -882,7 +882,7 @@ export default function KnowledgeGraphPage() {
                 <button
                   onClick={() => setViewMode('cards')}
                   className={`px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 ${
-                    viewMode === 'cards' ? 'bg-white shadow-xs text-indigo-700' : 'text-gray-500 hover:text-gray-900'
+                    viewMode === 'cards' ? 'bg-white dark:bg-neutral-700 shadow-xs text-violet-700 dark:text-violet-300' : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white'
                   }`}
                 >
                   <span>📊</span>
@@ -892,27 +892,27 @@ export default function KnowledgeGraphPage() {
 
               {/* Canvas Zoom & Reset Controls */}
               {viewMode === 'graph' && (
-                <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-xl px-2 py-1 text-xs">
+                <div className="flex items-center gap-1 bg-stone-50 dark:bg-neutral-800 border border-stone-200 dark:border-neutral-700 rounded-xl px-2 py-1 text-xs">
                   <button
                     onClick={() => setZoom((z) => Math.max(z - 0.2, 0.4))}
-                    className="w-6 h-6 flex items-center justify-center font-bold text-gray-600 hover:bg-gray-200 rounded"
+                    className="w-6 h-6 flex items-center justify-center font-bold text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-neutral-700 rounded"
                     title="Thu nhỏ"
                   >
                     -
                   </button>
-                  <span className="w-10 text-center font-mono font-bold text-gray-700">
+                  <span className="w-10 text-center font-mono font-bold text-stone-700 dark:text-stone-300">
                     {Math.round(zoom * 100)}%
                   </span>
                   <button
                     onClick={() => setZoom((z) => Math.min(z + 0.2, 2.2))}
-                    className="w-6 h-6 flex items-center justify-center font-bold text-gray-600 hover:bg-gray-200 rounded"
+                    className="w-6 h-6 flex items-center justify-center font-bold text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-neutral-700 rounded"
                     title="Phóng to"
                   >
                     +
                   </button>
                   <button
                     onClick={handleResetView}
-                    className="text-[11px] text-indigo-600 font-bold px-1.5 py-0.5 hover:underline"
+                    className="text-[11px] text-violet-600 dark:text-violet-400 font-bold px-1.5 py-0.5 hover:underline"
                     title="Căn giữa góc nhìn"
                   >
                     Fit
@@ -920,7 +920,7 @@ export default function KnowledgeGraphPage() {
                   {Object.keys(customPositions).length > 0 && (
                     <button
                       onClick={handleResetPositions}
-                      className="text-[11px] text-amber-600 font-bold px-1.5 py-0.5 hover:underline"
+                      className="text-[11px] text-amber-600 dark:text-amber-400 font-bold px-1.5 py-0.5 hover:underline"
                       title="Khôi phục vị trí mặc định của các nút"
                     >
                       ↺ Vị trí
@@ -946,6 +946,17 @@ export default function KnowledgeGraphPage() {
 
               {/* Floating Quick Toggles */}
               <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+                <button
+                  onClick={() => setShowCenterLines((p) => !p)}
+                  className={`text-[11px] px-2.5 py-1 rounded-full font-bold border transition ${
+                    showCenterLines
+                      ? 'bg-indigo-600/80 border-indigo-400 text-white'
+                      : 'bg-slate-900/80 border-slate-700 text-slate-400'
+                  }`}
+                  title="Bật/Tắt đường liên kết từ tâm học viên tới các kỹ năng"
+                >
+                  Tia liên kết: {showCenterLines ? 'Bật' : 'Tắt'}
+                </button>
                 <button
                   onClick={() => setShowClusterBounds((p) => !p)}
                   className={`text-[11px] px-2.5 py-1 rounded-full font-bold border transition ${
@@ -1127,10 +1138,10 @@ export default function KnowledgeGraphPage() {
                             y1={edge.fromNode.y}
                             x2={edge.toNode.x}
                             y2={edge.toNode.y}
-                            stroke="#334155"
-                            strokeWidth={isConnected ? 1.5 : 0.6}
-                            strokeDasharray="4,4"
-                            opacity={isConnected ? 0.65 : 0.1}
+                            stroke="#6366f1"
+                            strokeWidth={isConnected ? 1.5 : 0.8}
+                            strokeDasharray="4,6"
+                            opacity={isConnected ? 0.45 : 0.15}
                           />
                         );
                       })}
@@ -1396,18 +1407,18 @@ export default function KnowledgeGraphPage() {
 
           {/* VIEW MODE 2: ROADMAP HIERARCHY FLOW */}
           {viewMode === 'roadmap' && (
-            <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm space-y-6 animate-fadeIn">
-              <div className="border-b border-gray-100 pb-3 flex items-center justify-between">
+            <div className="bg-white dark:bg-[#1e1e1e] border border-stone-200/80 dark:border-neutral-700/80 rounded-3xl p-6 shadow-sm space-y-6 animate-fadeIn">
+              <div className="border-b border-stone-100 dark:border-neutral-800 pb-3 flex items-center justify-between">
                 <div>
-                  <h3 className="font-bold text-gray-900 text-base flex items-center gap-2">
+                  <h3 className="font-bold text-stone-900 dark:text-stone-100 text-base flex items-center gap-2">
                     <span>🌳</span>
                     <span>Lộ trình Phát triển Năng lực & Chuỗi Tiên quyết</span>
                   </h3>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
                     Mô hình hóa thứ tự phát triển: Kỹ năng nền tảng cơ sở ➔ Kỹ năng cốt lõi ➔ Kỹ năng chuyên sâu
                   </p>
                 </div>
-                <span className="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full">
+                <span className="text-xs font-bold text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/70 border border-violet-200 dark:border-violet-800 px-3 py-1 rounded-full">
                   {skillCount} Kỹ năng theo Tracks
                 </span>
               </div>
@@ -1422,16 +1433,16 @@ export default function KnowledgeGraphPage() {
                   if (nodesInCat.length === 0) return null;
 
                   return (
-                    <div key={catKey} className="bg-gray-50/80 border border-gray-200 rounded-2xl p-5 space-y-4">
+                    <div key={catKey} className="bg-stone-50/80 dark:bg-neutral-800/60 border border-stone-200/80 dark:border-neutral-700 rounded-2xl p-5 space-y-4">
                       {/* Track Header */}
-                      <div className="flex items-center justify-between border-b border-gray-200/60 pb-2.5">
+                      <div className="flex items-center justify-between border-b border-stone-200/60 dark:border-neutral-700 pb-2.5">
                         <div className="flex items-center gap-2">
                           <span className="text-xl">{theme.icon}</span>
                           <div>
-                            <h4 className="font-bold text-gray-900 text-sm">
+                            <h4 className="font-bold text-stone-900 dark:text-stone-100 text-sm">
                               Track: {theme.name}
                             </h4>
-                            <p className="text-[11px] text-gray-500">
+                            <p className="text-[11px] text-stone-500 dark:text-stone-400">
                               {nodesInCat.length} kỹ năng trong chuyên môn này
                             </p>
                           </div>
@@ -1457,12 +1468,12 @@ export default function KnowledgeGraphPage() {
                                   onClick={() => setSelectedNode(node)}
                                   className={`text-left p-3.5 rounded-2xl border transition-all ${
                                     isSelected
-                                      ? 'bg-white border-indigo-500 shadow-md ring-2 ring-indigo-200'
-                                      : 'bg-white border-gray-200 hover:border-indigo-300 hover:shadow-xs'
+                                      ? 'bg-white dark:bg-neutral-800 border-violet-500 shadow-md ring-2 ring-violet-400/40'
+                                      : 'bg-white dark:bg-neutral-800 border-stone-200 dark:border-neutral-700 hover:border-violet-400 dark:hover:border-violet-500 hover:shadow-xs'
                                   }`}
                                 >
                                   <div className="flex items-center gap-2">
-                                    <span className="font-bold text-gray-900 text-xs">{node.label}</span>
+                                    <span className="font-bold text-stone-900 dark:text-stone-100 text-xs">{node.label}</span>
                                     <span
                                       className="text-[10px] font-bold text-white px-2 py-0.5 rounded-full"
                                       style={{ backgroundColor: theme.color }}
@@ -1473,10 +1484,10 @@ export default function KnowledgeGraphPage() {
                                       <span className="text-emerald-500 text-xs" title="Đã xác thực">✓</span>
                                     )}
                                   </div>
-                                  <p className="text-[11px] text-gray-500 mt-1">
+                                  <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-1">
                                     {PROFICIENCY_LEVEL_NAMES[lvl]} ({lvl * 20}%)
                                   </p>
-                                  <div className="w-24 bg-gray-100 rounded-full h-1.5 mt-2 overflow-hidden">
+                                  <div className="w-24 bg-stone-100 dark:bg-neutral-700 rounded-full h-1.5 mt-2 overflow-hidden">
                                     <div
                                       className="h-full rounded-full"
                                       style={{ width: `${lvl * 20}%`, backgroundColor: theme.color }}
@@ -1484,7 +1495,7 @@ export default function KnowledgeGraphPage() {
                                   </div>
                                 </button>
                                 {nIdx < nodesInCat.length - 1 && (
-                                  <div className="flex items-center text-gray-400 font-bold px-1 text-sm">
+                                  <div className="flex items-center text-stone-400 dark:text-stone-500 font-bold px-1 text-sm">
                                     <span>➔</span>
                                   </div>
                                 )}
@@ -1636,21 +1647,21 @@ export default function KnowledgeGraphPage() {
               allEdges={layout.edges}
             />
           ) : (
-            <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-xs text-center space-y-3">
-              <div className="w-12 h-12 mx-auto rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl font-bold shadow-xs">
+            <div className="bg-white dark:bg-[#1e1e1e] border border-stone-200/80 dark:border-neutral-700/80 rounded-3xl p-6 shadow-xs text-center space-y-3">
+              <div className="w-12 h-12 mx-auto rounded-2xl bg-violet-50 dark:bg-violet-950/60 text-violet-600 dark:text-violet-300 flex items-center justify-center text-xl font-bold shadow-xs">
                 🎯
               </div>
-              <h3 className="font-bold text-gray-900 text-sm">Chi tiết nút kỹ năng</h3>
-              <p className="text-xs text-gray-500 leading-relaxed">
+              <h3 className="font-bold text-stone-900 dark:text-stone-100 text-sm">Chi tiết nút kỹ năng</h3>
+              <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
                 Nhấp vào bất kỳ hành tinh kỹ năng nào trên sơ đồ để kiểm tra chi tiết trình độ, điều kiện tiên quyết và liên kết bổ trợ.
               </p>
             </div>
           )}
 
           {/* Quick Skill Search & Filter Drawer */}
-          <div className="bg-white border border-gray-200 rounded-3xl p-5 shadow-xs space-y-3">
+          <div className="bg-white dark:bg-[#1e1e1e] border border-stone-200/80 dark:border-neutral-700/80 rounded-3xl p-5 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-800">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-stone-800 dark:text-stone-200">
                 Tìm kiếm nhanh ({skillCount})
               </h4>
             </div>
@@ -1658,10 +1669,10 @@ export default function KnowledgeGraphPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Gõ tên kỹ năng (React, Python...)"
-              className="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              className="w-full border border-stone-300 dark:border-neutral-700 bg-stone-50/70 dark:bg-neutral-800 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 rounded-xl px-3 py-2 text-xs focus:bg-white dark:focus:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition"
             />
 
-            <div className="max-h-64 overflow-y-auto space-y-1 divide-y divide-gray-50 pt-1">
+            <div className="max-h-64 overflow-y-auto space-y-1 divide-y divide-stone-100 dark:divide-neutral-800/80 pt-1">
               {graph?.nodes
                 ?.filter(
                   (n) =>
@@ -1679,8 +1690,8 @@ export default function KnowledgeGraphPage() {
                       onClick={() => handleExplore(node)}
                       className={`w-full text-left px-2.5 py-2 rounded-xl text-xs flex items-center justify-between transition ${
                         isSelected
-                          ? 'bg-indigo-50 text-indigo-900 font-bold'
-                          : 'hover:bg-gray-50 text-gray-700'
+                          ? 'bg-violet-50 dark:bg-violet-950/70 text-violet-900 dark:text-violet-200 font-bold'
+                          : 'hover:bg-stone-50 dark:hover:bg-neutral-800/60 text-stone-700 dark:text-stone-300'
                       }`}
                     >
                       <div className="flex items-center gap-2 truncate">
@@ -1690,7 +1701,7 @@ export default function KnowledgeGraphPage() {
                           <span className="text-emerald-500 text-[10px]">✓</span>
                         )}
                       </div>
-                      <span className="text-[10px] text-gray-500 shrink-0 font-bold ml-2">
+                      <span className="text-[10px] text-stone-400 dark:text-stone-500 shrink-0 font-bold ml-2">
                         Lv.{lvl}
                       </span>
                     </button>

@@ -113,32 +113,32 @@ const AnnouncementsPage = () => {
       ) : (
         <div className="space-y-3">
           {items.map((item) => (
-            <Card key={item._id}>
-              <CardBody>
+            <Card key={item._id} className="hover:border-stone-300 dark:hover:border-neutral-600 transition">
+              <CardBody className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold text-slate-800">{item.title}</p>
+                      <p className="font-bold text-sm text-stone-900 dark:text-stone-100">{item.title}</p>
                       {item.isBroadcast && <Badge tone="accent">Toàn hệ thống</Badge>}
                       {item.scope === 'course' && item.course && <Badge tone="brand">{item.course.code}</Badge>}
                       <Badge tone="neutral">{AUDIENCE_LABELS[item.audience]}</Badge>
                       {item.status === 'hidden' && <Badge tone="danger">Đã ẩn</Badge>}
                     </div>
-                    <p className="mt-1 whitespace-pre-line text-sm text-slate-600">{item.content}</p>
-                    <p className="mt-1 text-xs text-slate-400">{item.author?.name} · {formatRelative(item.createdAt)}</p>
+                    <p className="mt-1.5 whitespace-pre-line text-sm text-stone-600 dark:text-stone-300 leading-relaxed">{item.content}</p>
+                    <p className="mt-2 text-xs text-stone-500 dark:text-stone-400">{item.author?.name} · {formatRelative(item.createdAt)}</p>
                   </div>
-                  <div className="flex shrink-0 gap-1">
+                  <div className="flex shrink-0 gap-1.5">
                     <button
                       type="button"
                       onClick={() => toggleVisibility(item)}
-                      className="rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100"
+                      className="rounded-lg px-2.5 py-1 text-xs font-semibold text-stone-600 dark:text-stone-300 transition bg-stone-100 hover:bg-stone-200 dark:bg-neutral-800 dark:hover:bg-neutral-700"
                     >
                       {item.status === 'published' ? 'Ẩn' : 'Hiện'}
                     </button>
                     <button
                       type="button"
                       onClick={() => setToDelete(item)}
-                      className="rounded-lg p-1.5 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                      className="rounded-lg p-1.5 text-stone-400 hover:text-rose-600 dark:text-stone-400 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition"
                     >
                       <Icon name="trash" className="h-4 w-4" />
                     </button>

@@ -34,8 +34,12 @@ const getProfileMetrics = async (studentId) => {
       selfReportedCount++;
     }
 
-    const hasValidEvidence = Array.isArray(s.evidence) && s.evidence.length > 0;
-    if (!hasValidEvidence && s.classification !== 'verified') {
+    const needsMoreEvidence =
+      s.verificationStatus === 'MORE_EVIDENCE_REQUIRED' ||
+      (Array.isArray(s.evidence) && s.evidence.some((e) => e.verificationStatus === 'MORE_EVIDENCE_REQUIRED'));
+    const hasValidEvidence = Array.isArray(s.evidence) && s.evidence.length > 0 && !needsMoreEvidence;
+
+    if ((!hasValidEvidence || needsMoreEvidence) && s.classification !== 'verified') {
       requiringEvidenceCount++;
     }
   }
@@ -130,8 +134,11 @@ const addManualSkill = async (studentId, { skillName, proficiency, evidence }) =
         description: evidence,
         source: 'Self-reported',
         sourceText: evidence,
-        verificationStatus: 'SELF_REPORTED',
+        verificationStatus: 'PENDING_REVIEW',
       });
+      if (existing.verificationStatus !== 'VERIFIED') {
+        existing.verificationStatus = 'PENDING_REVIEW';
+      }
     }
     existing.lastAssessedAt = new Date();
     await existing.save();
@@ -148,7 +155,7 @@ const addManualSkill = async (studentId, { skillName, proficiency, evidence }) =
           description: evidence,
           source: 'Self-reported',
           sourceText: evidence,
-          verificationStatus: 'SELF_REPORTED',
+          verificationStatus: 'PENDING_REVIEW',
         },
       ]
     : [];
@@ -160,7 +167,7 @@ const addManualSkill = async (studentId, { skillName, proficiency, evidence }) =
     proficiency: validProficiency,
     proficiencyLevel,
     classification: 'self_reported',
-    verificationStatus: 'SELF_REPORTED',
+    verificationStatus: evidence ? 'PENDING_REVIEW' : 'SELF_REPORTED',
     status: 'student_declared',
     assessmentMethod: 'self_reported',
     competencies: standardComps,
@@ -397,7 +404,8 @@ const submitEvidence = async (studentId, skillId, payload) => {
     const fullText = `${title} ${description} ${sourceText}`.trim();
     const evalResult = evaluateEvidenceRelevance(skill.skillName, fullText);
 
-    newEvidence.verificationStatus = evalResult.relevance >= 0.5 ? 'AI_ANALYZED' : 'MORE_EVIDENCE_REQUIRED';
+    // AI analysis provides suggested score & rubric feedback; submission remains queued for lecturer/admin review
+    newEvidence.verificationStatus = evalResult.relevance >= 0.5 ? 'AI_ANALYZED' : 'PENDING_REVIEW';
     newEvidence.assessmentResult = {
       score: evalResult.suggestedScore,
       rubric: 'Competency-based Natural Language Assessment',
@@ -406,7 +414,7 @@ const submitEvidence = async (studentId, skillId, payload) => {
     };
 
     // Update competencies breakdown if competencies matched
-    if (evalResult.demonstratedCompetencies.length > 0) {
+    if (evalResult.demonstratedCompetencies.length > 0 && Array.isArray(skill.competencies)) {
       skill.competencies.forEach((comp) => {
         if (evalResult.demonstratedCompetencies.includes(comp.name)) {
           comp.status = 'competent';
@@ -418,6 +426,12 @@ const submitEvidence = async (studentId, skillId, payload) => {
   }
 
   skill.evidence.push(newEvidence);
+  if (skill.verificationStatus !== 'VERIFIED') {
+    skill.verificationStatus = 'PENDING_REVIEW';
+  }
+  if (skill.status === 'ai_suggested') {
+    skill.status = 'confirmed';
+  }
   skill.lastAssessedAt = new Date();
   await skill.save();
 
@@ -457,6 +471,10 @@ const reviewEvidence = async (reviewerUser, skillId, evidenceId, { decision, com
   ev.reviewedAt = new Date();
   ev.reviewerComments = comments;
 
+  if (!ev.assessmentResult) {
+    ev.assessmentResult = { score: null, rubric: '', feedback: '', competenciesDemonstrated: [] };
+  }
+
   if (score !== null && score !== undefined) {
     ev.assessmentResult.score = Number(score);
   }
@@ -469,12 +487,14 @@ const reviewEvidence = async (reviewerUser, skillId, evidenceId, { decision, com
       skill.proficiencyScore = Number(score);
     }
     // Mark associated competencies as mastered / competent
-    skill.competencies.forEach((c) => {
-      if (c.status === 'untested' || c.status === 'developing') {
-        c.status = 'competent';
-        if (score) c.score = Number(score);
-      }
-    });
+    if (Array.isArray(skill.competencies)) {
+      skill.competencies.forEach((c) => {
+        if (c.status === 'untested' || c.status === 'developing') {
+          c.status = 'competent';
+          if (score) c.score = Number(score);
+        }
+      });
+    }
   } else if (decision === 'REJECTED') {
     // If no other evidence is verified, set to REJECTED or revert to SELF_REPORTED
     const hasOtherVerified = skill.evidence.some(
@@ -489,9 +509,12 @@ const reviewEvidence = async (reviewerUser, skillId, evidenceId, { decision, com
   }
 
   // Record verification history audit log
+  if (!Array.isArray(skill.verificationHistory)) {
+    skill.verificationHistory = [];
+  }
   skill.verificationHistory.push({
     changedAt: new Date(),
-    fromStatus: oldStatus,
+    fromStatus: oldStatus || 'SELF_REPORTED',
     toStatus: decision,
     changedBy: reviewerUser.id || reviewerUser._id,
     reason: comments || `Thẩm định bởi ${reviewerUser.name || 'Giảng viên'}`,
@@ -499,6 +522,32 @@ const reviewEvidence = async (reviewerUser, skillId, evidenceId, { decision, com
   });
 
   await skill.save();
+
+  // Send in-app notification to student
+  try {
+    const notificationService = require('../services/notification.service');
+    let notifMessage = '';
+    if (decision === 'MORE_EVIDENCE_REQUIRED') {
+      notifMessage = `Ban thẩm định yêu cầu nộp bổ sung minh chứng cho kỹ năng "${skill.skillName}". ${comments ? `Ghi chú: ${comments}` : 'Vui lòng bổ sung thêm tài liệu hoặc dự án minh chứng.'}`;
+    } else if (decision === 'VERIFIED') {
+      notifMessage = `Chúc mừng! Kỹ năng "${skill.skillName}" của bạn đã được xác thực chính thức (Điểm: ${score || skill.proficiencyScore || 85}/100).`;
+    } else if (decision === 'REJECTED') {
+      notifMessage = `Bằng chứng kỹ năng "${skill.skillName}" của bạn chưa đạt yêu cầu thẩm định. ${comments ? `Lý do: ${comments}` : ''}`;
+    }
+
+    if (notifMessage && skill.student) {
+      await notificationService.notify({
+        recipient: skill.student,
+        type: 'admin_message',
+        message: notifMessage.trim(),
+        link: '/skill-intelligence/profile',
+      });
+    }
+  } catch (notifErr) {
+    // Non-blocking notification catch
+    console.warn('Failed to send review notification to student:', notifErr.message);
+  }
+
   return skill;
 };
 
@@ -581,7 +630,169 @@ const getPendingReview = async (studentId) => {
   }).lean();
 };
 
+/**
+ * Record interactive quiz assessment result.
+ * Promotes skill to 'assessed' with verificationStatus = 'ASSESSED'.
+ * Saves evidence of type 'PRACTICAL_ASSESSMENT'.
+ */
+const recordQuizAssessment = async (
+  studentId,
+  { skillName, score = 100, correctCount = 3, totalQuestions = 3, projectCode = 'SWP391' }
+) => {
+  if (!skillName || typeof skillName !== 'string') {
+    throw new AppError('Tên kỹ năng không hợp lệ', 400);
+  }
+
+  const norm = skillName.trim().toLowerCase().replace(/\s+/g, ' ');
+  const numericScore = Math.min(100, Math.max(0, Number(score) || 0));
+  const isPassed = numericScore >= 75;
+
+  let skill = await StudentSkill.findOne({ student: studentId, normalizedName: norm, isActive: true });
+
+  const assignedProficiency = numericScore >= 90 ? 'advanced' : numericScore >= 75 ? 'intermediate' : 'beginner';
+  const assignedLevel = PROFICIENCY_NUMBERS[assignedProficiency] || (numericScore >= 75 ? 3 : 2);
+
+  const evidenceItem = {
+    evidenceType: 'PRACTICAL_ASSESSMENT',
+    title: `Trắc nghiệm Năng lực Chuyên sâu: ${skillName.trim()}`,
+    description: `Sinh viên đã hoàn thành bài kiểm tra năng lực kỹ năng ${skillName.trim()} cho đồ án [${projectCode}]. Kết quả: ${correctCount}/${totalQuestions} câu đúng (${Math.round(numericScore)}%).`,
+    sourceText: `Bài kiểm tra đánh giá mức độ sẵn sàng thực tế cho dự án ${projectCode}. Điểm đạt: ${Math.round(numericScore)}%.`,
+    verificationStatus: isPassed ? 'ASSESSED' : 'MORE_EVIDENCE_REQUIRED',
+    assessmentResult: {
+      score: Math.round(numericScore),
+      rubric: 'Interactive Project Readiness Assessment',
+      feedback: isPassed
+        ? `Đã đáp ứng đủ mức độ năng lực thực hành để tham gia dự án/đề tài ${projectCode}.`
+        : `Chưa đạt điểm tối thiểu (>=75%) để đáp ứng yêu cầu dự án ${projectCode}. Cần ôn tập thêm.`,
+      competenciesDemonstrated: isPassed ? [skillName.trim()] : [],
+    },
+    addedAt: new Date(),
+  };
+
+  if (!skill) {
+    const comps = getStandardCompetencies(skillName.trim());
+    skill = new StudentSkill({
+      student: studentId,
+      skillName: skillName.trim(),
+      normalizedName: norm,
+      proficiency: assignedProficiency,
+      proficiencyLevel: assignedLevel,
+      classification: isPassed ? 'assessed' : 'self_reported',
+      verificationStatus: isPassed ? 'ASSESSED' : 'MORE_EVIDENCE_REQUIRED',
+      status: isPassed ? 'confirmed' : 'student_declared',
+      assessmentMethod: 'practical_assessment',
+      proficiencyScore: Math.round(numericScore),
+      competencies: comps,
+      evidence: [evidenceItem],
+      assessmentHistory: [
+        {
+          assessmentDate: new Date(),
+          method: 'practical_assessment',
+          score: Math.round(numericScore),
+          rubric: 'Interactive Project Readiness Assessment',
+          proficiencyAssessed: assignedProficiency,
+          notes: `Đánh giá sẵn sàng cho dự án ${projectCode}: ${correctCount}/${totalQuestions} câu`,
+        },
+      ],
+      lastAssessedAt: new Date(),
+    });
+  } else {
+    if (skill.classification !== 'verified') {
+      if (isPassed) {
+        skill.classification = 'assessed';
+        skill.verificationStatus = 'ASSESSED';
+        skill.status = 'confirmed';
+        if (assignedLevel > (skill.proficiencyLevel || 0)) {
+          skill.proficiency = assignedProficiency;
+          skill.proficiencyLevel = assignedLevel;
+        }
+        skill.proficiencyScore = Math.max(skill.proficiencyScore || 0, Math.round(numericScore));
+        skill.assessmentMethod = 'practical_assessment';
+      }
+    }
+    skill.evidence.push(evidenceItem);
+    skill.assessmentHistory.push({
+      assessmentDate: new Date(),
+      method: 'practical_assessment',
+      score: Math.round(numericScore),
+      rubric: 'Interactive Project Readiness Assessment',
+      proficiencyAssessed: assignedProficiency,
+      notes: `Đánh giá sẵn sàng cho dự án ${projectCode}: ${correctCount}/${totalQuestions} câu`,
+    });
+    skill.lastAssessedAt = new Date();
+  }
+
+  await skill.save();
+  const metrics = await getProfileMetrics(studentId);
+
+  return {
+    skill,
+    metrics,
+    isPassed,
+    message: isPassed
+      ? `Đã cập nhật chứng thực năng lực "${skillName}" vào Hồ sơ Năng lực của bạn!`
+      : `Bài làm chưa đạt điểm tối thiểu 75%. Hãy ôn lại tài liệu và thử lại nhé!`,
+  };
+};
+
+/**
+ * List all pending evidences across all students (admin view).
+ * Returns an array of objects containing student, skill, and evidence details.
+ */
+const listPendingEvidence = async () => {
+  // Populate student reference and unwind evidences for filtering
+  const pipeline = [
+    { $match: { isActive: true } },
+    { $unwind: '$evidence' },
+    {
+      $match: {
+        $and: [
+          { 'evidence.verificationStatus': { $nin: ['VERIFIED', 'REJECTED'] } },
+          {
+            $or: [
+              { 'evidence.reviewer': null },
+              { 'evidence.verificationStatus': { $in: ['PENDING_REVIEW', 'AI_ANALYZED', 'EVIDENCE_SUBMITTED'] } },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'student',
+        foreignField: '_id',
+        as: 'studentInfo',
+      },
+    },
+    { $unwind: { path: '$studentInfo', preserveNullAndEmptyArrays: true } },
+    {
+      $project: {
+        _id: 0,
+        studentId: '$studentInfo._id',
+        studentName: { $ifNull: ['$studentInfo.name', 'Sinh viên'] },
+        studentEmail: { $ifNull: ['$studentInfo.email', ''] },
+        skillId: '$_id',
+        skillName: '$skillName',
+        evidenceId: { $ifNull: ['$evidence.evidenceId', { $toString: '$evidence._id' }] },
+        evidenceType: '$evidence.evidenceType',
+        title: { $ifNull: ['$evidence.title', { $concat: ['Bằng chứng ', '$evidence.evidenceType'] }] },
+        description: { $ifNull: ['$evidence.description', '$evidence.sourceText'] },
+        sourceUrl: '$evidence.sourceUrl',
+        addedAt: { $ifNull: ['$evidence.addedAt', '$$NOW'] },
+        verificationStatus: { $ifNull: ['$evidence.verificationStatus', 'PENDING_REVIEW'] },
+        aiScore: '$evidence.assessmentResult.score',
+        aiFeedback: '$evidence.assessmentResult.feedback',
+      },
+    },
+    { $sort: { addedAt: -1 } },
+  ];
+  const pending = await StudentSkill.aggregate(pipeline).exec();
+  return pending;
+};
+
 module.exports = {
+  listPendingEvidence,
   getProfile,
   getProfileMetrics,
   addManualSkill,
@@ -593,4 +804,5 @@ module.exports = {
   updateProficiency,
   removeSkill,
   getPendingReview,
+  recordQuizAssessment,
 };

@@ -12,30 +12,41 @@ const MAX_DEPTH = 3; // max BFS traversal depth
 
 // ─── Seed data: canonical relationships ──────────────────────────────────────
 const SEED_RELATIONSHIPS = [
-  // Prerequisites
-  { from: 'javascript', to: 'react', type: 'PREREQUISITE_OF', weight: 0.9 },
-  { from: 'javascript', to: 'node.js', type: 'PREREQUISITE_OF', weight: 0.85 },
-  { from: 'javascript', to: 'typescript', type: 'PREREQUISITE_OF', weight: 0.8 },
-  { from: 'python', to: 'machine learning', type: 'PREREQUISITE_OF', weight: 0.85 },
-  { from: 'python', to: 'deep learning', type: 'PREREQUISITE_OF', weight: 0.8 },
+  // Prerequisites (Yêu cầu học trước - Mũi tên đỏ)
+  { from: 'html/css', to: 'react', type: 'PREREQUISITE_OF', weight: 0.85 },
+  { from: 'html/css', to: 'javascript', type: 'PREREQUISITE_OF', weight: 0.8 },
+  { from: 'javascript', to: 'react', type: 'PREREQUISITE_OF', weight: 0.95 },
+  { from: 'javascript', to: 'node.js', type: 'PREREQUISITE_OF', weight: 0.9 },
+  { from: 'javascript', to: 'typescript', type: 'PREREQUISITE_OF', weight: 0.85 },
+  { from: 'node.js', to: 'express', type: 'PREREQUISITE_OF', weight: 0.9 },
+  { from: 'python', to: 'machine learning', type: 'PREREQUISITE_OF', weight: 0.9 },
+  { from: 'python', to: 'deep learning', type: 'PREREQUISITE_OF', weight: 0.85 },
   { from: 'java', to: 'spring boot', type: 'PREREQUISITE_OF', weight: 0.9 },
-  { from: 'sql', to: 'postgresql', type: 'PREREQUISITE_OF', weight: 0.7 },
-  { from: 'sql', to: 'mysql', type: 'PREREQUISITE_OF', weight: 0.7 },
-  { from: 'sql', to: 'sql server', type: 'PREREQUISITE_OF', weight: 0.7 },
-  { from: 'machine learning', to: 'deep learning', type: 'PREREQUISITE_OF', weight: 0.8 },
-  { from: 'html/css', to: 'react', type: 'PREREQUISITE_OF', weight: 0.7 },
-  { from: 'html/css', to: 'vue', type: 'PREREQUISITE_OF', weight: 0.7 },
-  // Related
-  { from: 'react', to: 'typescript', type: 'RELATED_TO', weight: 0.75 },
-  { from: 'node.js', to: 'express', type: 'RELATED_TO', weight: 0.9 },
-  { from: 'docker', to: 'kubernetes', type: 'RELATED_TO', weight: 0.8 },
-  { from: 'postgresql', to: 'mysql', type: 'RELATED_TO', weight: 0.7 },
-  // Complementary
-  { from: 'react', to: 'node.js', type: 'COMPLEMENTARY_TO', weight: 0.8 },
-  { from: 'spring boot', to: 'sql server', type: 'COMPLEMENTARY_TO', weight: 0.75 },
+  { from: 'sql', to: 'postgresql', type: 'PREREQUISITE_OF', weight: 0.75 },
+  { from: 'sql', to: 'mysql', type: 'PREREQUISITE_OF', weight: 0.75 },
+  { from: 'sql', to: 'sql server', type: 'PREREQUISITE_OF', weight: 0.75 },
+
+  // Related (Quan hệ công nghệ cùng nhánh - Nét xanh dương)
+  { from: 'react', to: 'typescript', type: 'RELATED_TO', weight: 0.85 },
+  { from: 'node.js', to: 'express', type: 'RELATED_TO', weight: 0.95 },
+  { from: 'node.js', to: 'mongodb', type: 'RELATED_TO', weight: 0.85 },
+  { from: 'sql', to: 'mongodb', type: 'RELATED_TO', weight: 0.75 },
+  { from: 'figma', to: 'html/css', type: 'RELATED_TO', weight: 0.8 },
+  { from: 'git', to: 'react', type: 'RELATED_TO', weight: 0.75 },
+  { from: 'git', to: 'node.js', type: 'RELATED_TO', weight: 0.75 },
+  { from: 'docker', to: 'kubernetes', type: 'RELATED_TO', weight: 0.85 },
+  { from: 'tailwind css', to: 'html/css', type: 'RELATED_TO', weight: 0.9 },
+  { from: 'redux', to: 'react', type: 'RELATED_TO', weight: 0.9 },
+
+  // Complementary (Bổ trợ hợp lực - Nét đứt màu tím)
+  { from: 'react', to: 'node.js', type: 'COMPLEMENTARY_TO', weight: 0.9 },
+  { from: 'docker', to: 'node.js', type: 'COMPLEMENTARY_TO', weight: 0.85 },
+  { from: 'docker', to: 'react', type: 'COMPLEMENTARY_TO', weight: 0.8 },
+  { from: 'express', to: 'mongodb', type: 'COMPLEMENTARY_TO', weight: 0.9 },
+  { from: 'python', to: 'sql', type: 'COMPLEMENTARY_TO', weight: 0.8 },
+  { from: 'figma', to: 'react', type: 'COMPLEMENTARY_TO', weight: 0.85 },
+  { from: 'git', to: 'docker', type: 'COMPLEMENTARY_TO', weight: 0.8 },
   { from: 'docker', to: 'linux', type: 'COMPLEMENTARY_TO', weight: 0.8 },
-  { from: 'figma', to: 'ui/ux', type: 'COMPLEMENTARY_TO', weight: 0.9 },
-  { from: 'machine learning', to: 'python', type: 'COMPLEMENTARY_TO', weight: 0.9 },
 ];
 
 /**
@@ -189,10 +200,19 @@ const getStudentGraph = async (studentId) => {
   const user = await User.findById(studentId).select('name').lean();
   nodes.push({ id: studentId.toString(), type: 'student', label: user?.name || 'Tôi' });
 
+  const nodeMapByNorm = new Map();
+  const nodeMapByTaxId = new Map();
   const taxonomyIds = [];
+
   for (const skill of skills) {
-    const taxId = skill.taxonomy?._id?.toString() || skill.normalizedName;
-    const nodeId = skill.taxonomy?._id?.toString() || `skill-${skill.normalizedName}`;
+    const taxId = skill.taxonomy?._id?.toString() || null;
+    const nodeId = taxId || `skill-${skill.normalizedName}`;
+
+    nodeMapByNorm.set(skill.normalizedName, nodeId);
+    if (taxId) {
+      nodeMapByTaxId.set(taxId, nodeId);
+      taxonomyIds.push(skill.taxonomy._id);
+    }
 
     if (!nodes.find((n) => n.id === nodeId)) {
       nodes.push({
@@ -220,11 +240,29 @@ const getStudentGraph = async (studentId) => {
       proficiencyLevel: skill.proficiencyLevel,
       classification: skill.classification || 'self_reported',
     });
-
-    if (skill.taxonomy?._id) taxonomyIds.push(skill.taxonomy._id);
   }
 
-  // Fetch relationships between these skills
+  const edgeSet = new Set();
+
+  // 1. Resolve relationships between student skills from SEED_RELATIONSHIPS
+  for (const rel of SEED_RELATIONSHIPS) {
+    const fromNodeId = nodeMapByNorm.get(rel.from);
+    const toNodeId = nodeMapByNorm.get(rel.to);
+    if (fromNodeId && toNodeId && fromNodeId !== toNodeId) {
+      const key = `${fromNodeId}->${toNodeId}:${rel.type}`;
+      if (!edgeSet.has(key)) {
+        edgeSet.add(key);
+        edges.push({
+          from: fromNodeId,
+          to: toNodeId,
+          type: rel.type,
+          weight: rel.weight || 0.8,
+        });
+      }
+    }
+  }
+
+  // 2. Fetch relationships between these skills from DB if available
   if (taxonomyIds.length > 0) {
     const rels = await SkillRelationship.find({
       fromId: { $in: taxonomyIds },
@@ -233,12 +271,20 @@ const getStudentGraph = async (studentId) => {
     }).lean();
 
     for (const rel of rels) {
-      edges.push({
-        from: rel.fromId.toString(),
-        to: rel.toId.toString(),
-        type: rel.relationshipType,
-        weight: rel.weight,
-      });
+      const fromNodeId = nodeMapByTaxId.get(rel.fromId.toString());
+      const toNodeId = nodeMapByTaxId.get(rel.toId.toString());
+      if (fromNodeId && toNodeId && fromNodeId !== toNodeId) {
+        const key = `${fromNodeId}->${toNodeId}:${rel.relationshipType}`;
+        if (!edgeSet.has(key)) {
+          edgeSet.add(key);
+          edges.push({
+            from: fromNodeId,
+            to: toNodeId,
+            type: rel.relationshipType,
+            weight: rel.weight,
+          });
+        }
+      }
     }
   }
 

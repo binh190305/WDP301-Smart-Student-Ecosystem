@@ -43,6 +43,7 @@ import AnnouncementsRouter from './pages/AnnouncementsRouter';
 import MonitorTeamsPage from './pages/lecturer/MonitorTeamsPage';
 import UsersPage from './pages/admin/UsersPage';
 import ModerationPage from './pages/admin/ModerationPage';
+import AdminEvidenceReviewPage from './pages/admin/AdminEvidenceReviewPage';
 
 const App = () => (
   <Routes>
@@ -86,6 +87,7 @@ const App = () => (
       <Route path="announcements" element={<AnnouncementsRouter />} />
       <Route path="monitor" element={<RoleRoute roles={['lecturer']}><MonitorTeamsPage /></RoleRoute>} />
       <Route path="users" element={<RoleRoute roles={['admin']}><UsersPage /></RoleRoute>} />
+      <Route path="evidence-review" element={<RoleRoute roles={['lecturer','admin']}><AdminEvidenceReviewPage /></RoleRoute>} />
       <Route path="moderation" element={<RoleRoute roles={['admin']}><ModerationPage /></RoleRoute>} />
       <Route path="admin-workspace" element={<RoleRoute roles={['admin']}><AdminWorkspacePage /></RoleRoute>} />
       <Route path="forbidden" element={<ForbiddenPage />} />

@@ -23,7 +23,11 @@ const sameSet = (a, b) => {
 
 const createQuiz = async (createdBy, payload) => {
   validateQuestions(payload.questions);
-  return Quiz.create({ ...payload, createdBy });
+  return Quiz.create({
+    ...payload,
+    course: payload.course || null,
+    createdBy,
+  });
 };
 
 const importQuiz = async (createdBy, filePath, payload) => {

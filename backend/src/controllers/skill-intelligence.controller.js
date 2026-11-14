@@ -130,6 +130,12 @@ const getPendingReview = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: skills });
 });
 
+// Admin: list all pending evidences across students
+const listPendingEvidence = asyncHandler(async (req, res) => {
+  const pending = await profileService.listPendingEvidence();
+  res.status(200).json({ success: true, data: pending });
+});
+
 const saveSuggestions = asyncHandler(async (req, res) => {
   const { skills } = req.body;
   if (!Array.isArray(skills) || skills.length === 0) {
@@ -211,6 +217,29 @@ const analyzeGapVsTeam = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * POST /api/skill-intelligence/quiz-assessment
+ * Save interactive quiz assessment result into student's Evidence-Based Skill Profile.
+ */
+const recordQuizAssessment = asyncHandler(async (req, res) => {
+  const studentId = req.user._id;
+  const { skillName, score, correctCount, totalQuestions, projectCode } = req.body;
+
+  const result = await profileService.recordQuizAssessment(studentId, {
+    skillName,
+    score,
+    correctCount,
+    totalQuestions,
+    projectCode,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: result.message,
+    data: result,
+  });
+});
+
 module.exports = {
   extractSkills,
   buildProjectRequirements,
@@ -235,4 +264,6 @@ module.exports = {
   getPrerequisites,
   analyzeGap,
   analyzeGapVsTeam,
+  recordQuizAssessment,
+  listPendingEvidence,
 };

@@ -1,7 +1,7 @@
 export const NAV_BY_ROLE = {
   student: [
     {
-      title: 'Tổng quan',
+      title: 'TỔNG QUAN',
       items: [
         { to: '/app', label: 'Bảng điều khiển', icon: 'dashboard', end: true },
         { to: '/app/announcements', label: 'Thông báo', icon: 'announce' },
@@ -10,7 +10,7 @@ export const NAV_BY_ROLE = {
       ],
     },
     {
-      title: 'Học tập',
+      title: 'HỌC TẬP',
       items: [
         { to: '/app/course-catalog', label: 'Học phần', icon: 'courses' },
         { to: '/app/assignments', label: 'Bài tập', icon: 'edit' },
@@ -20,7 +20,7 @@ export const NAV_BY_ROLE = {
       ],
     },
     {
-      title: 'Nhóm',
+      title: 'NHÓM',
       items: [
         { to: '/app/teams/discover', label: 'Khám phá nhóm', icon: 'sparkles' },
         { to: '/app/teams', label: 'Nhóm của tôi', icon: 'teams' },
@@ -29,15 +29,15 @@ export const NAV_BY_ROLE = {
       ],
     },
     {
-      title: 'AI Kỹ năng',
+      title: 'KỸ NĂNG & AI',
       items: [
         { to: '/app/skill-intelligence/profile', label: 'Hồ sơ kỹ năng', icon: 'profile' },
         { to: '/app/skill-intelligence/analyze', label: 'Phân tích & Khoảng cách', icon: 'sparkles' },
-        { to: '/app/skill-intelligence/graph', label: 'Đồ thị kỹ năng', icon: 'chart' },
+        { to: '/app/skill-intelligence/graph', label: 'Đồ thị tri thức', icon: 'chart' },
       ],
     },
     {
-      title: 'Cộng đồng',
+      title: 'CỘNG ĐỒNG',
       items: [
         { to: '/app/feed', label: 'Bảng tin & Sự kiện', icon: 'feed' },
         { to: '/app/students', label: 'Tìm sinh viên', icon: 'users' },
@@ -45,13 +45,13 @@ export const NAV_BY_ROLE = {
       ],
     },
     {
-      title: 'Cá nhân',
+      title: 'CÁ NHÂN',
       items: [{ to: '/app/profile', label: 'Hồ sơ cá nhân', icon: 'profile' }],
     },
   ],
   lecturer: [
     {
-      title: 'Tổng quan',
+      title: 'TỔNG QUAN',
       items: [
         { to: '/app', label: 'Bảng điều khiển', icon: 'dashboard', end: true },
         { to: '/app/announcements', label: 'Thông báo', icon: 'announce' },
@@ -60,44 +60,46 @@ export const NAV_BY_ROLE = {
       ],
     },
     {
-      title: 'Giảng dạy',
+      title: 'GIẢNG DẠY',
       items: [
         { to: '/app/courses', label: 'Quản lý học phần', icon: 'courses' },
+        { to: '/app/evidence-review', label: 'Thẩm định bằng chứng', icon: 'sparkles' },
         { to: '/app/assignments', label: 'Bài tập', icon: 'edit' },
         { to: '/app/quizzes', label: 'Bộ câu hỏi', icon: 'quiz' },
         { to: '/app/materials', label: 'Tài liệu giảng dạy', icon: 'materials' },
       ],
     },
     {
-      title: 'Sinh viên & cộng đồng',
+      title: 'SINH VIÊN & CỘNG ĐỒNG',
       items: [
         { to: '/app/monitor', label: 'Giám sát nhóm', icon: 'teams' },
         { to: '/app/feed', label: 'Bảng tin', icon: 'feed' },
       ],
     },
     {
-      title: 'Cá nhân',
+      title: 'CÁ NHÂN',
       items: [{ to: '/app/profile', label: 'Hồ sơ cá nhân', icon: 'profile' }],
     },
   ],
   admin: [
     {
-      title: 'Tổng quan',
+      title: 'TỔNG QUAN',
       items: [
         { to: '/app', label: 'Tổng quan hệ thống', icon: 'chart', end: true },
         { to: '/app/search', label: 'Tìm kiếm', icon: 'search' },
       ],
     },
     {
-      title: 'Quản trị',
+      title: 'QUẢN TRỊ',
       items: [
         { to: '/app/users', label: 'Quản lý người dùng', icon: 'users' },
+        { to: '/app/evidence-review', label: 'Thẩm định kỹ năng', icon: 'sparkles' },
         { to: '/app/courses', label: 'Quản lý học phần', icon: 'courses' },
         { to: '/app/assignments', label: 'Bài tập', icon: 'edit' },
       ],
     },
     {
-      title: 'Nội dung',
+      title: 'NỘI DUNG',
       items: [
         { to: '/app/announcements', label: 'Thông báo hệ thống', icon: 'announce' },
         { to: '/app/moderation', label: 'Kiểm duyệt bài đăng', icon: 'feed' },
@@ -107,7 +109,7 @@ export const NAV_BY_ROLE = {
   ],
   club_leader: [
     {
-      title: 'Tổng quan',
+      title: 'TỔNG QUAN',
       items: [
         { to: '/app', label: 'Bảng điều khiển', icon: 'dashboard', end: true },
         { to: '/app/calendar', label: 'Lịch & sự kiện', icon: 'bell' },
@@ -115,14 +117,14 @@ export const NAV_BY_ROLE = {
       ],
     },
     {
-      title: 'Cộng đồng',
+      title: 'CỘNG ĐỒNG',
       items: [
         { to: '/app/feed', label: 'Sự kiện & Bảng tin', icon: 'feed' },
         { to: '/app/announcements', label: 'Thông báo', icon: 'announce' },
       ],
     },
     {
-      title: 'Cá nhân',
+      title: 'CÁ NHÂN',
       items: [{ to: '/app/profile', label: 'Hồ sơ cá nhân', icon: 'profile' }],
     },
   ],

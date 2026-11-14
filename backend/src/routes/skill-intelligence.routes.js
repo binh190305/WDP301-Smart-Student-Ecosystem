@@ -43,6 +43,9 @@ router.post('/student-skills/suggestions', restrictTo('student'), ctrl.saveSugge
 // GET  /api/skill-intelligence/profile/metrics
 router.get('/profile/metrics', restrictTo('student'), ctrl.getProfileMetrics);
 
+// POST /api/skill-intelligence/quiz-assessment (save quiz assessment result)
+router.post('/quiz-assessment', restrictTo('student'), ctrl.recordQuizAssessment);
+
 // GET  /api/skill-intelligence/student-skills  (my own profile)
 router.get('/student-skills', restrictTo('student'), validate(listSkillsQuerySchema, 'query'), ctrl.getMyProfile);
 
@@ -73,6 +76,9 @@ router.delete('/student-skills/:id', restrictTo('student'), ctrl.removeSkill);
 
 // GET /api/skill-intelligence/student-skills/pending
 router.get('/student-skills/pending', restrictTo('student'), ctrl.getPendingReview);
+
+// Admin: list all pending evidences across students
+router.get('/evidence/pending', restrictTo('admin', 'lecturer'), ctrl.listPendingEvidence);
 
 // Admin / Lecturer: view any student's profile
 // GET /api/skill-intelligence/students/:id/skills

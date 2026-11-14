@@ -28,11 +28,20 @@ export const ToastProvider = ({ children }) => {
   );
 
   const value = useMemo(
-    () => ({
-      success: (message) => push(message, 'success'),
-      error: (message) => push(message, 'error'),
-      info: (message) => push(message, 'info'),
-    }),
+    () => {
+      const showToast = (message, tone = 'info') => {
+        if (tone === 'warning') tone = 'info';
+        push(message, tone);
+      };
+      return {
+        showToast,
+        push,
+        success: (message) => push(message, 'success'),
+        error: (message) => push(message, 'error'),
+        info: (message) => push(message, 'info'),
+        warning: (message) => push(message, 'info'),
+      };
+    },
     [push]
   );
 

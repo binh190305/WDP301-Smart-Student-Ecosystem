@@ -88,26 +88,39 @@ const DiscoverTeamsPage = () => {
   };
 
   return (
-    <div>
-      <PageHeader
-        title="Tìm nhóm & Ghép đội"
-        description="Để AI gợi ý nhóm phù hợp nhất, hoặc chủ động tìm kiếm và tạo nhóm mới."
-        action={
-          <Button onClick={() => openCreate()}>
-            <Icon name="plus" className="h-4 w-4" /> Tạo nhóm
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-50 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 text-sm font-bold">
+              👥
+            </span>
+            <h1 className="text-2xl font-black tracking-tight text-stone-900 dark:text-stone-100">Tìm kiếm & Ghép đội nhóm</h1>
+          </div>
+          <p className="text-sm font-medium text-stone-500 dark:text-stone-400 mt-1">
+            Sử dụng AI để phân tích kỹ năng và tìm nhóm đồ án phù hợp nhất, hoặc chủ động tìm kiếm theo chuyên ngành.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => openCreate()} className="shadow-md shadow-violet-500/20">
+            <Icon name="plus" className="h-4 w-4" /> Tạo nhóm mới
           </Button>
-        }
-      />
+        </div>
+      </div>
 
-      <div className="mb-6 inline-flex rounded-xl border border-slate-200 bg-white p-1">
+      {/* Tabs */}
+      <div className="flex items-center gap-2 border-b border-stone-200/80 dark:border-neutral-800 pb-2">
         {TABS.map((item) => (
           <button
             key={item.key}
             type="button"
             onClick={() => setTab(item.key)}
             className={cn(
-              'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition',
-              tab === item.key ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'
+              'flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition',
+              tab === item.key
+                ? 'bg-stone-900 text-white dark:bg-neutral-800 shadow-sm'
+                : 'text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-neutral-800'
             )}
           >
             <Icon name={item.icon} className="h-4 w-4" />
@@ -117,7 +130,7 @@ const DiscoverTeamsPage = () => {
       </div>
 
       {tab === 'search' && (
-        <form onSubmit={applySearch} className="mb-6 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-5">
+        <form onSubmit={applySearch} className="mb-6 grid gap-3 rounded-2xl border border-stone-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-800/60 p-4 sm:grid-cols-2 lg:grid-cols-5 shadow-sm">
           <Input
             className="lg:col-span-2"
             placeholder="Tìm theo tên, chủ đề..."

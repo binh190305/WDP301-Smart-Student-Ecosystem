@@ -54,42 +54,42 @@ const NotificationBell = () => {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="relative rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+        className="relative rounded-xl p-2 text-stone-500 dark:text-stone-400 transition hover:bg-stone-100 dark:hover:bg-neutral-800 hover:text-stone-700 dark:hover:text-stone-200"
         aria-label="Thông báo"
       >
         <Icon name="bell" />
         {unread > 0 && (
-          <span className="absolute right-1 top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
+          <span className="absolute right-1 top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white shadow-sm">
             {unread > 9 ? '9+' : unread}
           </span>
         )}
       </button>
 
       {open && (
-        <div role="dialog" aria-label="Danh sách thông báo" className="animate-fade-in absolute right-0 z-20 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-xl border border-slate-200 bg-white shadow-float">
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-            <p className="text-sm font-semibold text-slate-800">Thông báo</p>
+        <div role="dialog" aria-label="Danh sách thông báo" className="animate-fade-in absolute right-0 z-20 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-stone-200/80 dark:border-neutral-700/80 bg-white dark:bg-[#1e1e1e] shadow-xl">
+          <div className="flex items-center justify-between border-b border-stone-100 dark:border-neutral-800 px-4 py-3">
+            <p className="text-sm font-bold text-stone-900 dark:text-stone-100">Thông báo</p>
             {unread > 0 && (
-              <button type="button" onClick={markAll} className="text-xs font-semibold text-brand-600 hover:underline">
+              <button type="button" onClick={markAll} className="text-xs font-semibold text-violet-600 dark:text-violet-400 hover:underline">
                 Đánh dấu đã đọc
               </button>
             )}
           </div>
           <div className="max-h-96 overflow-y-auto">
             {items.length === 0 ? (
-              <p className="px-4 py-6 text-center text-sm text-slate-400">Chưa có thông báo nào</p>
+              <p className="px-4 py-6 text-center text-sm text-stone-400 dark:text-stone-500">Chưa có thông báo nào</p>
             ) : (
               items.map((item) => (
                 <button
                   key={item._id}
                   type="button"
                   onClick={() => handleOpen(item)}
-                  className={`flex w-full flex-col items-start gap-0.5 border-b border-slate-50 px-4 py-3 text-left transition hover:bg-slate-50 ${
-                    item.isRead ? '' : 'bg-brand-50/40'
+                  className={`flex w-full flex-col items-start gap-1 border-b border-stone-100 dark:border-neutral-800/60 px-4 py-3 text-left transition hover:bg-stone-50 dark:hover:bg-neutral-800/60 ${
+                    item.isRead ? '' : 'bg-violet-50/50 dark:bg-violet-950/25'
                   }`}
                 >
-                  <span className="text-sm text-slate-700">{item.message}</span>
-                  <span className="text-xs text-slate-400">{formatRelative(item.createdAt)}</span>
+                  <span className="text-sm font-medium text-stone-800 dark:text-stone-200">{item.message}</span>
+                  <span className="text-xs text-stone-400 dark:text-stone-500">{formatRelative(item.createdAt)}</span>
                 </button>
               ))
             )}

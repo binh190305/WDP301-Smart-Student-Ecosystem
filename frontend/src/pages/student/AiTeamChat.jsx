@@ -56,9 +56,9 @@ const CriteriaChips = ({ criteria }) => {
   if (!chips.length) return null;
   return (
     <div className="mt-2 flex flex-wrap items-center gap-1.5">
-      <span className="text-xs text-slate-500">AI hiểu yêu cầu:</span>
+      <span className="text-xs text-stone-500 dark:text-stone-400">AI hiểu yêu cầu:</span>
       {chips.map((chip) => (
-        <span key={chip} className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700">
+        <span key={chip} className="rounded-full bg-violet-50 dark:bg-violet-950/60 px-2 py-0.5 text-xs font-medium text-violet-700 dark:text-violet-300 border border-violet-100 dark:border-violet-800">
           {chip}
         </span>
       ))}
@@ -71,42 +71,42 @@ const ResultCard = ({ item, requested, onJoin, source }) => {
   const pending = item.pending_request || requested;
   const logClick = () => recommendationApi.click({ teamId: team._id, source }).catch(() => {});
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="rounded-2xl border border-stone-200/80 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4 shadow-sm hover:border-violet-300 dark:hover:border-violet-700 transition">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <Link to={`/app/teams/${team._id}`} onClick={logClick} className="font-semibold text-slate-900 hover:text-brand-600">
+          <Link to={`/app/teams/${team._id}`} onClick={logClick} className="font-bold text-stone-900 dark:text-stone-100 hover:text-violet-600 dark:hover:text-violet-400 transition">
             {team.name}
           </Link>
-          <p className="text-sm text-slate-500">
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
             {[team.topic, team.major].filter(Boolean).join(' · ')}
           </p>
         </div>
-        <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-600">
+        <span className="shrink-0 rounded-full bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200/60 dark:border-emerald-800 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300">
           {Math.round(item.score * 100)}% phù hợp
         </span>
       </div>
 
-      <p className="mt-3 flex gap-2 rounded-lg bg-brand-50/60 px-3 py-2 text-sm text-slate-700">
-        <Icon name="sparkles" className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
+      <p className="mt-3 flex gap-2 rounded-xl bg-violet-50/70 dark:bg-violet-950/40 border border-violet-100/60 dark:border-violet-900/40 px-3 py-2 text-xs text-stone-700 dark:text-stone-300">
+        <Icon name="sparkles" className="mt-0.5 h-4 w-4 shrink-0 text-violet-600 dark:text-violet-400" />
         <span>{item.explanation}</span>
       </p>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
-          <span className="rounded-full bg-slate-100 px-2 py-0.5 font-medium text-slate-600">
+          <span className="rounded-full bg-stone-100 dark:bg-neutral-700 px-2 py-0.5 font-medium text-stone-600 dark:text-stone-300">
             {team.memberCount}/{team.capacity} thành viên
           </span>
           {item.fairness_slot && (
-            <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700">Nhóm đang cần người</span>
+            <span className="rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200/60 dark:border-amber-800 px-2 py-0.5 font-medium text-amber-700 dark:text-amber-300">Nhóm đang cần người</span>
           )}
           {team.missingSkills.slice(0, 4).map((skill) => (
-            <span key={skill} className="rounded-full bg-brand-50 px-2 py-0.5 font-medium text-brand-700">
+            <span key={skill} className="rounded-full bg-violet-50 dark:bg-violet-950/60 border border-violet-100 dark:border-violet-800 px-2 py-0.5 font-medium text-violet-700 dark:text-violet-300">
               Thiếu: {skill}
             </span>
           ))}
         </div>
         {pending ? (
-          <span className="text-xs font-semibold text-slate-500">Đã gửi yêu cầu</span>
+          <span className="text-xs font-semibold text-stone-500 dark:text-stone-400">Đã gửi yêu cầu</span>
         ) : (
           <Button
             size="sm"
@@ -124,20 +124,20 @@ const ResultCard = ({ item, requested, onJoin, source }) => {
 };
 
 const TopicCard = ({ topic, onCreate }) => (
-  <div className="flex flex-col rounded-xl border border-dashed border-violet-300 bg-white p-4">
-    <p className="font-semibold text-slate-900">{topic.title}</p>
-    <p className="text-sm text-slate-500">{[topic.topic, topic.major].filter(Boolean).join(' · ')}</p>
-    <p className="mt-2 text-sm text-slate-700">{topic.description}</p>
+  <div className="flex flex-col rounded-2xl border border-dashed border-violet-300 dark:border-violet-700 bg-white dark:bg-neutral-800 p-4">
+    <p className="font-bold text-stone-900 dark:text-stone-100">{topic.title}</p>
+    <p className="text-xs text-stone-500 dark:text-stone-400">{[topic.topic, topic.major].filter(Boolean).join(' · ')}</p>
+    <p className="mt-2 text-xs text-stone-700 dark:text-stone-300 leading-relaxed">{topic.description}</p>
     {topic.reason && (
-      <p className="mt-2 flex gap-2 rounded-lg bg-violet-50 px-3 py-2 text-sm text-slate-700">
-        <Icon name="sparkles" className="mt-0.5 h-4 w-4 shrink-0 text-violet-600" />
+      <p className="mt-2 flex gap-2 rounded-xl bg-violet-50 dark:bg-violet-950/40 px-3 py-2 text-xs text-stone-700 dark:text-stone-300 border border-violet-100/60 dark:border-violet-800/40">
+        <Icon name="sparkles" className="mt-0.5 h-4 w-4 shrink-0 text-violet-600 dark:text-violet-400" />
         <span>{topic.reason}</span>
       </p>
     )}
     <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
       <div className="flex flex-wrap gap-1.5 text-xs">
         {topic.skillsNeeded.slice(0, 5).map((skill) => (
-          <span key={skill} className="rounded-full bg-slate-100 px-2 py-0.5 font-medium text-slate-600">
+          <span key={skill} className="rounded-full bg-stone-100 dark:bg-neutral-700 px-2 py-0.5 font-medium text-stone-600 dark:text-stone-300">
             {skill}
           </span>
         ))}
@@ -185,22 +185,22 @@ const TopicSuggestions = ({ topics, onCreate, hasTeams, onMore }) => {
 
 const AssistantMessage = ({ message, requestedIds, onJoin, onCreate, onMoreTopics }) => (
   <div className="flex gap-3">
-    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white">
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-600 text-white shadow-sm">
       <Icon name="sparkles" className="h-4 w-4" />
     </div>
     <div className="min-w-0 flex-1">
       {message.loading ? (
-        <div className="inline-flex items-center gap-2 rounded-2xl rounded-tl-sm bg-white px-4 py-3 text-sm text-slate-500 shadow-sm">
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-600 border-t-transparent" />
+        <div className="inline-flex items-center gap-2 rounded-2xl rounded-tl-sm bg-white dark:bg-neutral-800 border border-stone-200/80 dark:border-neutral-700 px-4 py-3 text-sm text-stone-500 dark:text-stone-300 shadow-sm">
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-violet-600 border-t-transparent" />
           Đang tìm nhóm và đề tài phù hợp...
         </div>
       ) : (
         <>
-          <div className="inline-block max-w-full rounded-2xl rounded-tl-sm bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
+          <div className="inline-block max-w-full rounded-2xl rounded-tl-sm bg-white dark:bg-neutral-800 border border-stone-200/80 dark:border-neutral-700 px-4 py-3 text-sm text-stone-800 dark:text-stone-100 shadow-sm leading-relaxed">
             {message.text}
             {message.needsOnboarding && (
               <div className="mt-2">
-                <Link to="/app/profile" className="font-semibold text-brand-600 hover:underline">
+                <Link to="/app/profile" className="font-semibold text-violet-600 dark:text-violet-400 hover:underline">
                   Cập nhật kỹ năng trong hồ sơ →
                 </Link>
               </div>
@@ -239,7 +239,7 @@ const AssistantMessage = ({ message, requestedIds, onJoin, onCreate, onMoreTopic
 
 const UserMessage = ({ text }) => (
   <div className="flex justify-end">
-    <div className="max-w-[80%] whitespace-pre-wrap rounded-2xl rounded-tr-sm bg-brand-600 px-4 py-2.5 text-sm text-white">
+    <div className="max-w-[80%] whitespace-pre-wrap rounded-2xl rounded-tr-sm bg-gradient-to-r from-violet-600 to-purple-600 px-4 py-2.5 text-sm text-white shadow-sm">
       {text}
     </div>
   </div>
@@ -274,7 +274,8 @@ const AiTeamChat = ({ requestedIds, onJoin, onCreate }) => {
   const greet = async () => {
     const id = newId();
     setMessages([{ id, role: 'assistant', loading: true }]);
-    const intro = `Chào ${user?.name?.split(' ').pop() || 'bạn'}! Hãy mô tả nhóm bạn muốn tìm: đề tài dự án, ngành học, kỹ năng hoặc vai trò bạn muốn đảm nhận.`;
+    const currentFirstName = user?.name?.trim()?.split(' ').pop() || user?.name || 'bạn';
+    const intro = `Chào ${currentFirstName}! Hãy mô tả nhóm bạn muốn tìm: đề tài dự án, ngành học, kỹ năng hoặc vai trò bạn muốn đảm nhận.`;
     try {
       const res = await recommendationApi.groups('me', { limit: 5 });
       const data = res.data;
@@ -306,9 +307,32 @@ const AiTeamChat = ({ requestedIds, onJoin, onCreate }) => {
 
   useEffect(() => {
     const saved = loadHistory(user);
-    if (saved) setMessages(saved);
-    else greet();
-  }, []);
+    if (saved && saved.length > 0) {
+      // Synchronize greeting name with current real user name if user updated profile
+      const currentFirstName = user?.name?.trim()?.split(' ').pop() || 'bạn';
+      const updated = saved.map((m, idx) => {
+        if (idx === 0 && m.role === 'assistant' && typeof m.text === 'string' && m.text.startsWith('Chào ')) {
+          return {
+            ...m,
+            text: m.text.replace(/^Chào\s+[^!]+!/, `Chào ${currentFirstName}!`),
+          };
+        }
+        return m;
+      });
+      setMessages(updated);
+    } else {
+      greet();
+    }
+  }, [user?.name]);
+
+  const handleReset = () => {
+    try {
+      localStorage.removeItem(historyKey(user));
+    } catch {
+      // ignore
+    }
+    greet();
+  };
 
   useEffect(() => {
     const finished = messages.filter((m) => !m.loading);
@@ -370,23 +394,23 @@ const AiTeamChat = ({ requestedIds, onJoin, onCreate }) => {
   return (
     <div
       className={cn(
-        'flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-card',
+        'flex flex-col overflow-hidden rounded-2xl border border-stone-200/80 dark:border-neutral-800 bg-stone-50/60 dark:bg-neutral-900/40 shadow-card',
         open && 'h-[calc(100vh-260px)] min-h-[520px]'
       )}
     >
-      <div className={cn('flex items-center justify-between gap-3 bg-white px-5 py-3', open && 'border-b border-slate-200')}>
+      <div className={cn('flex items-center justify-between gap-3 bg-white dark:bg-neutral-800 px-5 py-3', open && 'border-b border-stone-200/80 dark:border-neutral-700')}>
         <button type="button" onClick={toggleOpen} className="flex min-w-0 flex-1 items-center gap-2 text-left">
-          <Icon name="sparkles" className="h-5 w-5 shrink-0 text-brand-600" />
+          <Icon name="sparkles" className="h-5 w-5 shrink-0 text-violet-600 dark:text-violet-400" />
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-900">Trợ lý tìm nhóm AI</p>
-            <p className="truncate text-xs text-slate-500">
+            <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">Trợ lý tìm nhóm AI</p>
+            <p className="truncate text-xs text-stone-500 dark:text-stone-400">
               {open ? 'Gợi ý nhóm đang tuyển và đề tài để bạn tự lập nhóm' : 'Nhấn để mở chat và mô tả nhóm bạn muốn tìm'}
             </p>
           </div>
         </button>
         <div className="flex shrink-0 items-center gap-1">
-          {open && hasAsked && (
-            <Button variant="ghost" size="sm" onClick={greet} disabled={sending}>
+          {open && (
+            <Button variant="ghost" size="sm" onClick={handleReset} disabled={sending} title="Làm mới cuộc trò chuyện theo hồ sơ hiện tại">
               Bắt đầu lại
             </Button>
           )}
@@ -421,7 +445,6 @@ const AiTeamChat = ({ requestedIds, onJoin, onCreate }) => {
               requestedIds={requestedIds}
               onJoin={onJoin}
               onCreate={onCreate}
-              // Chỉ tin nhắn cuối mới có nút xin thêm đề tài
               onMoreTopics={index === messages.length - 1 && !sending ? () => send('Có đề tài khác không?') : null}
             />
           )
@@ -429,7 +452,7 @@ const AiTeamChat = ({ requestedIds, onJoin, onCreate }) => {
         <div ref={bottomRef} />
       </div>
 
-      <div className="border-t border-slate-200 bg-white px-4 py-3">
+      <div className="border-t border-stone-200/80 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-4 py-3">
         {!hasAsked && (
           <div className="mb-3 flex flex-wrap gap-2">
             {SUGGESTIONS.map((s) => (
@@ -438,7 +461,7 @@ const AiTeamChat = ({ requestedIds, onJoin, onCreate }) => {
                 type="button"
                 onClick={() => send(s)}
                 disabled={sending}
-                className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 disabled:opacity-50"
+                className="rounded-full border border-stone-200 dark:border-neutral-700 px-3 py-1 text-xs text-stone-600 dark:text-stone-300 transition hover:border-violet-300 hover:bg-violet-50 dark:hover:bg-violet-950/40 hover:text-violet-700 dark:hover:text-violet-300 disabled:opacity-50"
               >
                 {s}
               </button>
@@ -459,7 +482,7 @@ const AiTeamChat = ({ requestedIds, onJoin, onCreate }) => {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder="VD: Mình muốn tìm nhóm ngành Kỹ thuật phần mềm làm app y tế, cần người làm frontend..."
-            className="max-h-32 min-h-[42px] flex-1 resize-none rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+            className="max-h-32 min-h-[42px] flex-1 resize-none rounded-xl border border-stone-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-stone-800 dark:text-stone-100 px-3 py-2.5 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
           />
           <Button type="submit" loading={sending} disabled={!input.trim()} className={cn('h-[42px]')}>
             Gửi

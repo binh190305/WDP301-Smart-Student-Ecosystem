@@ -7,9 +7,9 @@ import PageHeader from '../components/layout/PageHeader';
 import { cn } from '../utils/cn';
 
 const RANK_STYLES = {
-  1: 'bg-amber-100 text-amber-700',
-  2: 'bg-slate-200 text-slate-600',
-  3: 'bg-orange-100 text-orange-700',
+  1: 'bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-700',
+  2: 'bg-stone-200 text-stone-700 border border-stone-300 dark:bg-neutral-700 dark:text-stone-200 dark:border-neutral-600',
+  3: 'bg-orange-100 text-orange-800 border border-orange-300 dark:bg-orange-950/80 dark:text-orange-300 dark:border-orange-700',
 };
 
 const LeaderboardPage = () => {
@@ -30,15 +30,15 @@ const LeaderboardPage = () => {
       />
 
       {me && (
-        <Card className="mb-6 border-brand-200 bg-brand-50/40">
+        <Card className="mb-6 border-stone-200/80 dark:border-neutral-700/80 bg-white dark:bg-[#1e1e1e]">
           <CardBody>
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold text-brand-700 shadow-sm">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-violet-50 dark:bg-neutral-800 text-lg font-black text-violet-700 dark:text-violet-300 border border-violet-200/80 dark:border-neutral-700 shadow-sm">
                 #{me.rank}
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-slate-900">{me.points} điểm hoạt động</p>
-                <p className="text-sm text-slate-500">
+                <p className="font-bold text-base text-stone-900 dark:text-stone-100">{me.points} điểm hoạt động</p>
+                <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
                   {me.stats.submissionCount} bài nộp · {me.stats.quizAttempts} lượt trắc nghiệm · {me.stats.lessonsCompleted} bài học · {me.stats.comments} bình luận
                 </p>
               </div>
@@ -49,8 +49,10 @@ const LeaderboardPage = () => {
                   key={badge.key}
                   title={badge.description}
                   className={cn(
-                    'inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold',
-                    badge.earned ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'
+                    'inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold border',
+                    badge.earned
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800'
+                      : 'bg-stone-100 dark:bg-neutral-800 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-neutral-700'
                   )}
                 >
                   {badge.earned ? '🏅' : '🔒'} {badge.label}
@@ -72,25 +74,27 @@ const LeaderboardPage = () => {
                 <div
                   key={row.student._id}
                   className={cn(
-                    'flex items-center gap-3 border-b border-slate-50 px-5 py-3 last:border-0',
-                    isMe && 'bg-brand-50/50'
+                    'flex items-center gap-3.5 border-b border-stone-100 dark:border-neutral-800/80 px-5 py-3.5 transition last:border-0',
+                    isMe
+                      ? 'bg-violet-50/70 dark:bg-violet-950/30'
+                      : 'hover:bg-stone-50/70 dark:hover:bg-neutral-800/50'
                   )}
                 >
                   <span
                     className={cn(
-                      'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold',
-                      RANK_STYLES[row.rank] || 'bg-slate-50 text-slate-500'
+                      'flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-black shadow-2xs',
+                      RANK_STYLES[row.rank] || 'bg-stone-100 dark:bg-neutral-800 text-stone-600 dark:text-stone-300 border border-stone-200/80 dark:border-neutral-700'
                     )}
                   >
                     {row.rank}
                   </span>
                   <Avatar name={row.student.name} src={row.student.avatarUrl} size="sm" />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-slate-800">
+                    <p className="truncate font-bold text-sm text-stone-900 dark:text-stone-100">
                       {row.student.name}
-                      {isMe && <span className="ml-1.5 text-xs font-semibold text-brand-600">(Bạn)</span>}
+                      {isMe && <span className="ml-1.5 text-xs font-bold text-violet-600 dark:text-violet-400">(Bạn)</span>}
                     </p>
-                    {row.student.major && <p className="text-xs text-slate-400">{row.student.major}</p>}
+                    {row.student.major && <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">{row.student.major}</p>}
                   </div>
                   <Badge tone="brand">{row.points} điểm</Badge>
                 </div>

@@ -50,11 +50,11 @@ const parseQuestions = async (filePath) => {
     const [questionText, ...optionValues] = values;
     const options = optionValues.slice(0, 6).filter(Boolean);
     try {
-      if (questionText.length < 3 || questionText.length > 500) {
-        throw new Error('questionText phải có 3-500 ký tự');
+      if (questionText.length < 3 || questionText.length > 3000) {
+        throw new Error('questionText phải có 3-3000 ký tự');
       }
       if (options.length < 2 || options.length > 6) throw new Error('Phải có 2-6 lựa chọn');
-      if (options.some((option) => option.length > 200)) throw new Error('Mỗi lựa chọn tối đa 200 ký tự');
+      if (options.some((option) => option.length > 2000)) throw new Error('Mỗi lựa chọn tối đa 2000 ký tự');
       questions.push({ questionText, options, correctIndexes: parseCorrectAnswers(values[7], rowNumber, options.length) });
     } catch (error) {
       errors.push(`Dòng ${rowNumber}: ${error.message}`);

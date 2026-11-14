@@ -19,6 +19,7 @@ export const skillIntelligenceApi = {
   getMySkills: (params) => client.get(`${BASE}/student-skills`, { params }),
   getProfileMetrics: () => client.get(`${BASE}/profile/metrics`),
   getPendingReview: () => client.get(`${BASE}/student-skills/pending`),
+  listAllPendingEvidence: () => client.get(`${BASE}/evidence/pending`),
   addSkill: (payload) => client.post(`${BASE}/student-skills`, payload),
   submitEvidence: (skillId, payload) => client.post(`${BASE}/student-skills/${skillId}/evidence`, payload),
   reviewEvidence: (skillId, evidenceId, payload) =>
@@ -42,4 +43,7 @@ export const skillIntelligenceApi = {
   // SI-05: Unified Gap Analysis
   analyzeGap: (payload) => client.post(`${BASE}/gap-analysis`, payload),
   analyzeGapVsTeam: (teamId) => client.get(`${BASE}/gap-analysis/team/${teamId}`),
+
+  // Interactive Quiz Assessment
+  recordQuizAssessment: (payload) => client.post(`${BASE}/quiz-assessment`, payload),
 };

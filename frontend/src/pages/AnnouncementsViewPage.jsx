@@ -52,19 +52,19 @@ const AnnouncementsViewPage = () => {
       ) : (
         <div className="mx-auto max-w-2xl space-y-3">
           {items.map((item) => (
-            <Card key={item._id}>
+            <Card key={item._id} className="hover:border-violet-300 dark:hover:border-neutral-600 transition">
               <button type="button" onClick={() => setSelected(item)} className="w-full text-left">
-                <CardBody className="transition hover:bg-slate-50">
+                <CardBody className="transition hover:bg-stone-50 dark:hover:bg-neutral-800/50 p-4">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-semibold text-slate-800">{item.title}</p>
+                    <p className="font-bold text-sm text-stone-900 dark:text-stone-100">{item.title}</p>
                     {item.isBroadcast && <Badge tone="accent">Toàn hệ thống</Badge>}
                     {item.scope === 'course' && item.course && <Badge tone="brand">{item.course.code}</Badge>}
                     <Badge tone="neutral">{AUDIENCE_LABELS[item.audience]}</Badge>
                   </div>
-                  <p className="mt-1 line-clamp-2 whitespace-pre-line text-sm text-slate-600">{item.content}</p>
-                  <p className="mt-2 flex items-center gap-2 text-xs text-slate-400">
+                  <p className="mt-1.5 line-clamp-2 whitespace-pre-line text-sm text-stone-600 dark:text-stone-300 leading-relaxed">{item.content}</p>
+                  <p className="mt-2.5 flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400">
                     <Avatar name={item.author?.name} src={item.author?.avatarUrl} size="sm" className="h-5 w-5 text-[9px]" />
-                    {item.author?.name} · {formatRelative(item.createdAt)}
+                    <span>{item.author?.name} · {formatRelative(item.createdAt)}</span>
                   </p>
                 </CardBody>
               </button>
@@ -83,10 +83,10 @@ const AnnouncementsViewPage = () => {
               )}
               <Badge tone="neutral">{AUDIENCE_LABELS[selected.audience]}</Badge>
             </div>
-            <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700">{selected.content}</p>
-            <div className="flex items-center gap-2 border-t border-slate-100 pt-3 text-xs text-slate-400">
+            <p className="whitespace-pre-line text-sm leading-relaxed text-stone-700 dark:text-stone-200">{selected.content}</p>
+            <div className="flex items-center gap-2 border-t border-stone-200/80 dark:border-neutral-700 pt-3 text-xs text-stone-500 dark:text-stone-400">
               <Avatar name={selected.author?.name} src={selected.author?.avatarUrl} size="sm" className="h-6 w-6 text-[10px]" />
-              {selected.author?.name} · {formatDateTime(selected.createdAt)}
+              <span>{selected.author?.name} · {formatDateTime(selected.createdAt)}</span>
             </div>
           </div>
         )}

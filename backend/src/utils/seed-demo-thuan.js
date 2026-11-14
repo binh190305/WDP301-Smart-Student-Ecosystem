@@ -243,7 +243,12 @@ async function seedThuanDemo() {
         confidence: item.confidence,
         aiCategory: item.category,
         assessmentMethod: item.status === 'confirmed' ? 'verified' : (item.status === 'ai_suggested' ? 'ai_extracted' : 'self_reported'),
-        evidence: item.evidence,
+        evidence: (item.evidence || []).map((e) => ({
+          ...e,
+          evidenceId: e.evidenceId || new mongoose.Types.ObjectId().toString(),
+          title: e.title || `Bằng chứng ${e.evidenceType}`,
+          verificationStatus: e.verificationStatus || 'PENDING_REVIEW',
+        })),
         isActive: true,
       },
       { upsert: true, new: true, runValidators: true }
